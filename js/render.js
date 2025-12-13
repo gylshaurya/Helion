@@ -1,9 +1,9 @@
-export function drawScene(ctx, cam, bodies) {
-    const canvas = ctx.canvas;
+export function drawScene(context, cam, bodies) {
+    const canvas = context.canvas;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.setTransform(
+    context.setTransform(
         cam.scale, 0,
         0, cam.scale,
         cam.x * cam.scale,
@@ -11,11 +11,11 @@ export function drawScene(ctx, cam, bodies) {
     );
 
     for (const b of bodies) {
-        ctx.beginPath();
-        ctx.fillStyle = b.color;
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fill();
+        context.beginPath();
+        context.fillStyle = b.color;
+        context.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        context.fill();
     }
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    context.setTransform(1, 0, 0, 1, 0, 0);
 }
