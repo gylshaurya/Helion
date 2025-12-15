@@ -20,7 +20,7 @@ export class Camera {
         this.scale *= factor;
         const after = this.screenToWorld(sx, sy);
 
-        this.x += before.x - after.x;
-        this.y += before.y - after.y;
+        this.x -= before.x - after.x;
+        this.y -= before.y - after.y;
     }
 }

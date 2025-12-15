@@ -11,11 +11,17 @@ export function drawScene(context, cam, bodies) {
     );
 
     for (const b of bodies) {
-        context.beginPath();
-        context.fillStyle = b.color;
-        context.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        context.fill();
-    }
+    if (!b.image.complete) continue;
+
+    const half = b.size / 2;
+    context.drawImage(
+      b.image,
+      b.x - half,
+      b.y - half,
+      b.size,
+      b.size
+    );
+  }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
 }
