@@ -5,15 +5,12 @@ const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
 
 const G = 0.5;
-const TIME_SCALE = 1; 
+const TIME_SCALE = 10; 
+let lastTime = performance.now();
 
 const MAX_TRAIL_LENGTH = 300; 
-const TRAIL_STEP = 2; 
+const TRAIL_STEP = 1; 
 let trailCounter = 0;
-
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 
 const sunImg = new Image();
 sunImg.src = 'src/assets/sun.svg';
@@ -25,6 +22,9 @@ const marsImg = new Image();
 marsImg.src = 'src/assets/mars.svg';
 
 const sunMass = 10000;
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 const bodies = [
   {
@@ -52,7 +52,6 @@ const bodies = [
     trail: []
   }
 ];
-
 
 
 const cam = new Camera();
@@ -87,9 +86,7 @@ canvas.addEventListener('mousemove', (e) => {
     last = pos;
 });
 
-
 window.addEventListener('mouseup', () => dragging = false);
-
 
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
@@ -129,8 +126,7 @@ function updatePhysics(dt) {
   }
 
   trailCounter++;
-
-if (trailCounter % TRAIL_STEP === 0) {
+  if (trailCounter % TRAIL_STEP === 0) {
   for (const b of bodies) {
     b.trail.push({ x: b.x, y: b.y });
 
@@ -141,8 +137,6 @@ if (trailCounter % TRAIL_STEP === 0) {
 }
 
 }
-
-let lastTime = performance.now();
 
 function loop(now) {
   const dt = (now - lastTime) * 0.001 * TIME_SCALE;

@@ -10,18 +10,40 @@ export function drawScene(context, cam, bodies) {
         cam.y * cam.scale
     );
 
-    for (const b of bodies) {
-    if (!b.image.complete) continue;
+    // ---- DASHED TRAILS ----
+    context.strokeStyle = 'white';
+    context.lineWidth = 1;
+    context.setLineDash([6, 6]);
 
-    const half = b.size / 2;
-    context.drawImage(
-      b.image,
-      b.x - half,
-      b.y - half,
-      b.size,
-      b.size
-    );
-  }
+    for (const b of bodies) {
+        if (!b.trail || b.trail.length < 2) continue;
+
+        context.beginPath();
+        context.moveTo(b.trail[0].x, b.trail[0].y);
+
+        for (let i = 1; i < b.trail.length; i++) {
+            const p = b.trail[i];
+            context.lineTo(p.x, p.y);
+        }
+
+        context.stroke();
+    }
+
+    context.setLineDash([]);
+
+    // ---- DRAW BODIES ----
+    for (const b of bodies) {
+        if (!b.image.complete) continue;
+
+        const half = b.size / 2;
+        context.drawImage(
+            b.image,
+            b.x - half,
+            b.y - half,
+            b.size,
+            b.size
+        );
+    }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
 }
