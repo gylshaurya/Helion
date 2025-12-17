@@ -12,9 +12,6 @@ export class Camera {
         };
     }
 
-
-
-
     zoomAt(factor, sx, sy) {
         const before = this.screenToWorld(sx, sy);
         this.scale *= factor;
@@ -24,3 +21,4 @@ export class Camera {
         this.y -= before.y - after.y;
     }
 }
+
