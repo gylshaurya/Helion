@@ -1,1 +1,1 @@
-# Solar-System-Sim
+# Helion - A Solar System Simulator
