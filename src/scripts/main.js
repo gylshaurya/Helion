@@ -9,9 +9,12 @@ const TIME_SCALE = 10;
 
 const SUN_MASS = 10000;
 
-const MAX_TRAIL_LENGTH = 2500 / TIME_SCALE;
+const MAX_TRAIL_LENGTH = 3000 / TIME_SCALE;
 const TRAIL_STEP = 1;
 const STORAGE_KEY = 'animation_state';
+
+const EDIT_MOVE_SPEED = 20;
+const keys = new Set();
 
 
 // ================== UI STATE ==================
@@ -144,6 +147,30 @@ function hideInfoPanel() {
   inspectedBody = null;
 }
 
+function updateEditorMovement(dt) {
+  if (!IS_PAUSED || !selectedBody) return;
+
+  let dx = 0;
+  let dy = 0;
+
+  if (keys.has('w')) dy -= 1;
+  if (keys.has('s')) dy += 1;
+  if (keys.has('a')) dx -= 1;
+  if (keys.has('d')) dx += 1;
+
+  if (dx == 0 && dy == 0) return;
+
+  const len = Math.hypot(dx, dy);
+  dx /= len;
+  dy /= len;
+
+  selectedBody.x += dx * EDIT_MOVE_SPEED * dt;
+  selectedBody.y += dy * EDIT_MOVE_SPEED * dt;
+
+  selectedBody.trail.length = 0;
+}
+
+
 pauseBtn.onclick = () => {
   IS_PAUSED = !IS_PAUSED;
   pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
@@ -203,6 +230,17 @@ colorPicker.oninput = e => {
 };
 
 // ================== INPUT ==================
+
+window.addEventListener('keydown', e => {
+  if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) {
+    keys.add(e.key.toLowerCase());
+  }
+});
+
+window.addEventListener('keyup', e => {
+  keys.delete(e.key.toLowerCase());
+});
+
 function pickBodyAt(x, y) {
   for (let i = bodies.length - 1; i >= 0; i--) {
     const b = bodies[i];
@@ -463,13 +501,13 @@ function loadState() {
 
 // ================== LOOP ==================
 function loop(now) {
+  let dt = (now - lastTime) * 0.001 * TIME_SCALE;
+  lastTime = now;
+
   if (!IS_PAUSED) {
-    let dt = (now - lastTime) * 0.001 * TIME_SCALE;
-    
-    lastTime = now;
     updatePhysics(dt);
   } else {
-    lastTime = now;
+    updateEditorMovement(dt);
   }
 
   updateInfoPanel(inspectedBody);
@@ -480,9 +518,9 @@ function loop(now) {
     showForce: SHOW_FORCE,
     showOrbits: SHOW_ORBITS,
     ghostBody: ghostBody && {
-    ...ghostBody,
-    size: newBodyConfig.size,
-    color: newBodyConfig.color
+      ...ghostBody,
+      size: newBodyConfig.size,
+      color: newBodyConfig.color
     },
     selectedBody,
     isEditingVelocity
@@ -490,5 +528,6 @@ function loop(now) {
 
   requestAnimationFrame(loop);
 }
+
 
 requestAnimationFrame(loop);
