@@ -9,9 +9,10 @@ const TIME_SCALE = 10;
 
 const SUN_MASS = 10000;
 
-const MAX_TRAIL_LENGTH = 3000 / TIME_SCALE;
+const MAX_TRAIL_LENGTH = 2500 / TIME_SCALE;
 const TRAIL_STEP = 1;
 const STORAGE_KEY = 'animation_state';
+
 
 // ================== UI STATE ==================
 let SHOW_TRAILS = true;
@@ -35,6 +36,8 @@ let lastMouse = null;
 
 let isEditingVelocity = false;
 let velocityEditStart = null;
+
+
 
 let newBodyConfig = {
   mass: 100,
@@ -69,6 +72,7 @@ const bodies = [
   new Body({ x: 200, y: 0, vx: 0, vy: Math.sqrt(G * SUN_MASS / 200), mass: 100, size: 40, image: EARTH_IMAGE }),
   new Body({ x: -300, y: 0, vx: 0, vy: -Math.sqrt(G * SUN_MASS / 300), mass: 80, size: 30, image: MARS_IMAGE })
 ];
+
 
 // ================== TOOLBAR ==================
 const pauseBtn = document.getElementById('pauseBtn');
@@ -108,6 +112,33 @@ function showInfoPanel(body) {
   `;
 }
 
+function updateInfoPanel(body) {
+  const panel = document.getElementById('body-info');
+
+  if (!body) {
+    panel.classList.add('hidden');
+    panel.innerHTML = '';
+    return;
+  }
+
+  const speed = Math.hypot(body.vx, body.vy);
+  const forceMag = Math.hypot(body.force.x, body.force.y);
+
+  panel.classList.remove('hidden');
+  panel.innerHTML = `
+    <h3>Body Info</h3>
+    <div><b>Mass</b><span>${body.mass.toFixed(1)}</span></div>
+    <div><b>Radius</b><span>${(body.size / 2).toFixed(1)}</span></div>
+    <div><b>X</b><span>${body.x.toFixed(2)}</span></div>
+    <div><b>Y</b><span>${body.y.toFixed(2)}</span></div>
+    <div><b>Vx</b><span>${body.vx.toFixed(3)}</span></div>
+    <div><b>Vy</b><span>${body.vy.toFixed(3)}</span></div>
+    <div><b>Speed</b><span>${speed.toFixed(3)}</span></div>
+    <div><b>Force</b><span>${forceMag.toFixed(4)}</span></div>
+  `;
+}
+
+
 function hideInfoPanel() {
   infoPanel.classList.add('hidden');
   inspectedBody = null;
@@ -118,7 +149,6 @@ pauseBtn.onclick = () => {
   pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
 
   inspectedBody = null;
-  hideInfoPanel();
 
   if (!IS_PAUSED) {
     selectedBody = null;
@@ -192,57 +222,55 @@ document.addEventListener('visibilitychange', () => {
 
 // ============= MOUSE INPUTS =================
 canvas.addEventListener('mousedown', e => {
-  isPanning = true
   const mouse = getMousePos(canvas, e);
   const world = cam.screenToWorld(mouse.x, mouse.y);
 
-    if (MODE === 'VIEW' && !IS_PAUSED) {
-        const hit = pickBodyAt(world.x, world.y);
-
-        if (hit) {
-            inspectedBody = hit;
-            showInfoPanel(hit);
-        } else {
-            inspectedBody = null;
-            hideInfoPanel();
-        }
-
-        return;
-    }
-
+  // ---------- ADD MODE ----------
   if (MODE === 'ADD') {
     ghostBody = { x: world.x, y: world.y, vx: 0, vy: 0 };
     velocityStart = world;
     return;
   }
 
+  // ---------- RUNNING: INSPECT ----------
+  if (MODE === 'VIEW' && !IS_PAUSED) {
+    const hit = pickBodyAt(world.x, world.y);
+
+    if (hit) {
+      inspectedBody = hit;
+      showInfoPanel(hit);
+      return; // only block panning if body was hit
+    } else {
+      inspectedBody = null;
+      hideInfoPanel();
+      // DO NOT return → allow panning
+    }
+  }
+
+  // ---------- PAUSED: EDIT ----------
   if (MODE === 'VIEW' && IS_PAUSED) {
     const hit = pickBodyAt(world.x, world.y);
 
     if (hit) {
-        selectedBody = hit;
+      selectedBody = hit;
 
-        massSlider.value = hit.mass;
-        radiusSlider.value = hit.size;
-        colorPicker.value = hit.color || '#ffffff';
+      massSlider.value = hit.mass;
+      radiusSlider.value = hit.size;
+      colorPicker.value = hit.color || '#ffffff';
 
-        isEditingVelocity = true;
-        velocityEditStart = { x: hit.x, y: hit.y };
-
-        return;
-    } 
-    else {
-        selectedBody = null;
+      isEditingVelocity = true;
+      velocityEditStart = { x: hit.x, y: hit.y };
+      return;
+    } else {
+      selectedBody = null;
     }
-
   }
 
-  if (MODE === 'VIEW') {
-    isPanning = true;
-    lastMouse = mouse;
-  }
-
+  // ---------- PANNING ----------
+  isPanning = true;
+  lastMouse = mouse;
 });
+
 
 canvas.addEventListener('mousemove', e => {
   const mouse = getMousePos(canvas, e);
@@ -443,6 +471,8 @@ function loop(now) {
   } else {
     lastTime = now;
   }
+
+  updateInfoPanel(inspectedBody);
 
   drawScene(ctx, cam, bodies, {
     showTrails: SHOW_TRAILS,

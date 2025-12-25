@@ -94,29 +94,7 @@ if (ghostBody) {
       drawArrow(ctx, b.x, b.y, b.vx * VELOCITY_SCALE, b.vy * VELOCITY_SCALE, 'cyan');
     }
   }
-
-  // ===== ORBITS =====
-  if (options.showOrbits) {
-for (const b of bodies) {
-  if (b === bodies[0]) continue; // skip sun
-
-  const orbit = computeOrbitPoints(b, bodies[0]);
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  ctx.lineWidth = 1 / cam.scale;
-  ctx.setLineDash([4 / cam.scale, 4 / cam.scale]);
-
-  ctx.beginPath();
-  ctx.moveTo(orbit[0].x, orbit[0].y);
-  for (let i = 1; i < orbit.length; i++) {
-    ctx.lineTo(orbit[i].x, orbit[i].y);
-  }
-  ctx.stroke();
-
-  ctx.setLineDash([]);
-}
-  }
-
+  
 
   // ===== BODIES =====
   for (const b of bodies) {
@@ -167,34 +145,4 @@ function drawArrow(ctx, x, y, vx, vy, color) {
   ctx.lineTo(x + vx - nx * head + ny * head * 0.5, y + vy - ny * head - nx * head * 0.5);
   ctx.closePath();
   ctx.fill();
-}
-
-function computeOrbitPoints(body, center, steps = 400, dt = 0.02) {
-  const points = [];
-
-  let x = body.x;
-  let y = body.y;
-  let vx = body.vx;
-  let vy = body.vy;
-
-  for (let i = 0; i < steps; i++) {
-    const dx = center.x - x;
-    const dy = center.y - y;
-    const r2 = dx * dx + dy * dy + 0.001;
-    const r = Math.sqrt(r2);
-
-    const accel = (0.5 * center.mass) / r2;
-    const ax = accel * (dx / r);
-    const ay = accel * (dy / r);
-
-    vx += ax * dt;
-    vy += ay * dt;
-
-    x += vx * dt;
-    y += vy * dt;
-
-    points.push({ x, y });
-  }
-
-  return points;
 }

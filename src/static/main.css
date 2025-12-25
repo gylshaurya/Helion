@@ -49,7 +49,7 @@ canvas {
 #right-toolbar {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 40px;
 
   width: 240px;
   display: flex;
