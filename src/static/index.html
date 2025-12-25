@@ -1,33 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Helion</title>
-    <link rel="stylesheet" href="main.css">
+  <meta charset="UTF-8" />
+  <title>Helion</title>
+  <link rel="stylesheet" href="main.css" />
 </head>
 <body>
 
-    <div id="toolbar">
-        <button id="resetBtn">Reset</button>
+  <canvas id="canvas"></canvas>
 
-        <label>
-            <input type="checkbox" id="toggleTrails" checked />
-            Trails
-        </label>
+  <aside id="left-toolbar" class="panel">
 
-        <label>
-            <input type="checkbox" id="toggleVelocity" checked />
-            Velocity
-        </label>
+    <button id="pauseBtn" class="icon-btn"><img id="pauseIcon" src="../assets/pause.png" alt="pause"/></button>
 
-        <label>
-            <input type="checkbox" id="toggleForce" checked />
-            Force
-        </label>
+    <div class="divider"></div>
+
+    <label class="toggle"><span>Trails</span><input type="checkbox" id="toggleTrails" checked /></label>
+    <label class="toggle"><span>Velocity</span><input type="checkbox" id="toggleVelocity" checked /></label>
+    <label class="toggle"><span>Force</span><input type="checkbox" id="toggleForce" checked /></label>
+
+    <div class="divider"></div>
+
+    <button id="resetBtn" class="text-btn">Reset</button>
+  </aside>
+
+  <aside id="right-toolbar">
+
+    <div id="body-controls" class="panel">
+      <h3>Body Controls</h3>
+
+      <label>Mass<input type="range" id="massSlider" min="1" max="20000" /></label>
+
+      <label>Radius<input type="range" id="radiusSlider" min="10" max="200" /></label>
+
+      <label>Color<input type="color" id="colorPicker" /></label>
+    
     </div>
 
-     <canvas id="canvas"></canvas>
+    <div id="body-info" class="panel hidden"></div>
 
-    <script type="module" src="../scripts/main.js"></script>
+  </aside>
+
+  <button id="addBodyBtn" class="fab">+</button>
+
+  <script type="module" src="../scripts/main.js"></script>
 </body>
 </html>

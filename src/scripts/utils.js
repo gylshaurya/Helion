@@ -5,3 +5,4 @@ export function getMousePos(canvas, event) {
         y: event.clientY - rect.top
     };
 }
+
