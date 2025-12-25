@@ -153,10 +153,10 @@ function updateEditorMovement(dt) {
   let dx = 0;
   let dy = 0;
 
-  if (keys.has('w')) dy -= 1;
-  if (keys.has('s')) dy += 1;
-  if (keys.has('a')) dx -= 1;
-  if (keys.has('d')) dx += 1;
+  if (keys.has('w') || keys.has('arrowup')) dy -= 1;
+  if (keys.has('s') || keys.has('arrowdown')) dy += 1;
+  if (keys.has('a') || keys.has('arrowleft')) dx -= 1;
+  if (keys.has('d') || keys.has('arrowright')) dx += 1;
 
   if (dx == 0 && dy == 0) return;
 
@@ -232,10 +232,27 @@ colorPicker.oninput = e => {
 // ================== INPUT ==================
 
 window.addEventListener('keydown', e => {
-  if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) {
-    keys.add(e.key.toLowerCase());
+  // Space = pause / play
+  if (e.code === 'Space') {
+    e.preventDefault();
+
+    IS_PAUSED = !IS_PAUSED;
+    pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
+
+    if (!IS_PAUSED) {
+      selectedBody = null;
+      isEditingVelocity = false;
+    }
+    return;
+  }
+
+  // Movement keys
+  const key = e.key.toLowerCase();
+  if (['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) {
+    keys.add(key);
   }
 });
+
 
 window.addEventListener('keyup', e => {
   keys.delete(e.key.toLowerCase());
