@@ -5,11 +5,9 @@ import { drawScene } from './render.js';
 
 // ================== CONSTANTS ==================
 const G = 0.5;
-const TIME_SCALE = 10;
-
 const SUN_MASS = 10000;
 
-const MAX_TRAIL_LENGTH = 3000 / TIME_SCALE;
+
 const TRAIL_STEP = 1;
 const STORAGE_KEY = 'animation_state';
 
@@ -40,7 +38,8 @@ let lastMouse = null;
 let isEditingVelocity = false;
 let velocityEditStart = null;
 
-
+let TIME_SCALE = 10;
+let MAX_TRAIL_LENGTH = 3000 / TIME_SCALE;
 
 let newBodyConfig = {
   mass: 100,
@@ -93,6 +92,10 @@ const colorPicker = document.getElementById('colorPicker');
 
 const infoPanel = document.getElementById('body-info');
 
+const timeScaleSlider = document.getElementById('timeScaleSlider');
+const timeScaleValue = document.getElementById('timeScaleValue');
+
+
 // ================== LOAD / SAVE ==================
 loadState();
 window.addEventListener('beforeunload', saveState);
@@ -104,15 +107,6 @@ toggleForce.onchange = e => SHOW_FORCE = e.target.checked;
 
 function showInfoPanel(body) {
   infoPanel.classList.remove('hidden');
-
-  infoPanel.innerHTML = `
-    <h3>Body Info</h3>
-    <div><b>Mass:</b> ${body.mass.toFixed(2)}</div>
-    <div><b>Radius:</b> ${body.size}</div>
-    <div><b>Velocity:</b> (${body.vx.toFixed(2)}, ${body.vy.toFixed(2)})</div>
-    <div><b>Speed:</b> ${Math.hypot(body.vx, body.vy).toFixed(2)}</div>
-    <div><b>Type:</b> ${body.image ? 'Image' : 'Color'}</div>
-  `;
 }
 
 function updateInfoPanel(body) {
@@ -132,12 +126,12 @@ function updateInfoPanel(body) {
     <h3>Body Info</h3>
     <div><b>Mass</b><span>${body.mass.toFixed(1)}</span></div>
     <div><b>Radius</b><span>${(body.size / 2).toFixed(1)}</span></div>
-    <div><b>X</b><span>${body.x.toFixed(2)}</span></div>
-    <div><b>Y</b><span>${body.y.toFixed(2)}</span></div>
-    <div><b>Vx</b><span>${body.vx.toFixed(3)}</span></div>
-    <div><b>Vy</b><span>${body.vy.toFixed(3)}</span></div>
-    <div><b>Speed</b><span>${speed.toFixed(3)}</span></div>
-    <div><b>Force</b><span>${forceMag.toFixed(4)}</span></div>
+    <div><b>X</b><span>${body.x.toFixed(1)}</span></div>
+    <div><b>Y</b><span>${body.y.toFixed(1)}</span></div>
+    <div><b>Vx</b><span>${body.vx.toFixed(1)}</span></div>
+    <div><b>Vy</b><span>${body.vy.toFixed(1)}</span></div>
+    <div><b>Speed</b><span>${speed.toFixed(1)}</span></div>
+    <div><b>Force</b><span>${forceMag.toFixed(1)}</span></div>
   `;
 }
 
@@ -169,6 +163,16 @@ function updateEditorMovement(dt) {
 
   selectedBody.trail.length = 0;
 }
+
+function updateTimeScaleUI(value) {
+  TIME_SCALE = value;
+  timeScaleValue.textContent = `${value.toFixed(1)}×`;
+}
+
+timeScaleSlider.addEventListener('input', e => {
+  updateTimeScaleUI(parseFloat(e.target.value));
+});
+
 
 
 pauseBtn.onclick = () => {
