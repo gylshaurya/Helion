@@ -129,7 +129,7 @@ function drawArrow(ctx, x, y, vx, vy, color) {
 
   const nx = vx / len;
   const ny = vy / len;
-  const head = 6 / ctx.getTransform().a;
+  const head = 6;
 
   ctx.strokeStyle = color;
   ctx.fillStyle = color;

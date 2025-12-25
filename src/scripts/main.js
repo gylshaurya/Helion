@@ -11,7 +11,7 @@ const SUN_MASS = 10000;
 const TRAIL_STEP = 1;
 const STORAGE_KEY = 'animation_state';
 
-const EDIT_MOVE_SPEED = 20;
+const EDIT_MOVE_SPEED = 10;
 const keys = new Set();
 
 
