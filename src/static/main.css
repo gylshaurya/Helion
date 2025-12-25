@@ -14,6 +14,25 @@ canvas {
   z-index: 0;
 }
 
+#app-title {
+  position: fixed;
+  top: 16px;
+  left: 20px;
+
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+
+  text-shadow: 0 0 12px rgba(255,255,255,0.08);
+
+  color: #e5e7eb;
+  opacity: 0.7;
+
+  z-index: 12;
+
+  pointer-events: none;
+}
+
 .panel {
   width: 100%;
   background: rgba(18, 18, 20, 0.88);
@@ -28,8 +47,8 @@ canvas {
 
 #left-toolbar {
   position: fixed;
-  top: 20px;
-  left: 20px;
+  top: 50px;
+  left: 15px;
 
   width: 180px;
   display: flex;
@@ -39,6 +58,11 @@ canvas {
 
   z-index: 10;
 }
+
+#body-controls.hidden {
+  display: none;
+}
+
 
 .pause-wrap {
   width: 100%;

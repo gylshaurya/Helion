@@ -28,6 +28,7 @@ let MODE = 'VIEW';
 
 let selectedBody = null;
 let inspectedBody = null;
+let shouldShow = false;
 
 let ghostBody = null;
 let velocityStart = null;
@@ -39,7 +40,7 @@ let isEditingVelocity = false;
 let velocityEditStart = null;
 
 let TIME_SCALE = 10;
-let MAX_TRAIL_LENGTH = 3000 / TIME_SCALE;
+let MAX_TRAIL_LENGTH = 150000 / Math.pow(TIME_SCALE, 2);
 
 let newBodyConfig = {
   mass: 100,
@@ -91,6 +92,7 @@ const radiusSlider = document.getElementById('radiusSlider');
 const colorPicker = document.getElementById('colorPicker');
 
 const infoPanel = document.getElementById('body-info');
+const bodyControlsPanel = document.getElementById('body-controls');
 
 const timeScaleSlider = document.getElementById('timeScaleSlider');
 const timeScaleValue = document.getElementById('timeScaleValue');
@@ -105,7 +107,13 @@ toggleTrails.onchange = e => SHOW_TRAILS = e.target.checked;
 toggleVelocity.onchange = e => SHOW_VELOCITY = e.target.checked;
 toggleForce.onchange = e => SHOW_FORCE = e.target.checked;
 
-function showInfoPanel(body) {
+function updateBodyControlsVisibility() {
+  shouldShow = MODE === 'ADD' || (MODE === 'VIEW' && selectedBody !== null);
+
+  bodyControlsPanel.classList.toggle('hidden', !shouldShow);
+}
+
+function showInfoPanel() {
   infoPanel.classList.remove('hidden');
 }
 
@@ -180,18 +188,22 @@ pauseBtn.onclick = () => {
   pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
 
   inspectedBody = null;
+  
 
   if (!IS_PAUSED) {
     selectedBody = null;
+    updateBodyControlsVisibility();
   }
 };
 
 addBodyBtn.onclick = () => {
   IS_PAUSED = true;
+  pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
   MODE = 'ADD';
   ghostBody = null;
 
   hideInfoPanel();
+  updateBodyControlsVisibility();
 
   massSlider.value = newBodyConfig.mass;
   radiusSlider.value = newBodyConfig.size;
@@ -236,7 +248,7 @@ colorPicker.oninput = e => {
 // ================== INPUT ==================
 
 window.addEventListener('keydown', e => {
-  // Space = pause / play
+
   if (e.code === 'Space') {
     e.preventDefault();
 
@@ -245,12 +257,22 @@ window.addEventListener('keydown', e => {
 
     if (!IS_PAUSED) {
       selectedBody = null;
+      updateBodyControlsVisibility();
       isEditingVelocity = false;
     }
     return;
   }
 
-  // Movement keys
+  if(IS_PAUSED && selectedBody){
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+        const index = bodies.indexOf(selectedBody);
+        if (index !== -1) {
+            bodies.splice(index, 1);
+            selectedBody = null;
+        }
+    }
+  }
+
   const key = e.key.toLowerCase();
   if (['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) {
     keys.add(key);
@@ -298,11 +320,12 @@ canvas.addEventListener('mousedown', e => {
     if (hit) {
       inspectedBody = hit;
       showInfoPanel(hit);
-      return; // only block panning if body was hit
+      
+      return;
     } else {
       inspectedBody = null;
       hideInfoPanel();
-      // DO NOT return → allow panning
+    
     }
   }
 
@@ -312,7 +335,7 @@ canvas.addEventListener('mousedown', e => {
 
     if (hit) {
       selectedBody = hit;
-
+      updateBodyControlsVisibility();
       massSlider.value = hit.mass;
       radiusSlider.value = hit.size;
       colorPicker.value = hit.color || '#ffffff';
