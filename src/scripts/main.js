@@ -1,6 +1,6 @@
 import { Camera } from './camera.js';
 import { Body } from './bodies.js';
-import { getMousePos } from './utils.js';
+import { getMousePos} from './utils.js';
 import { drawScene } from './render.js';
 
 // ================== CONSTANTS ==================
@@ -13,6 +13,11 @@ const STORAGE_KEY = 'animation_state';
 
 const EDIT_MOVE_SPEED = 10;
 const keys = new Set();
+
+const MERGE_PENETRATION_RATIO = 0.35; 
+
+const MIN_TIME = 0.1;
+const MAX_TIME = 200;
 
 
 // ================== UI STATE ==================
@@ -39,8 +44,8 @@ let lastMouse = null;
 let isEditingVelocity = false;
 let velocityEditStart = null;
 
-let TIME_SCALE = 10;
-let MAX_TRAIL_LENGTH = 150000 / Math.pow(TIME_SCALE, 2);
+let TIME_SCALE = 1;
+let MAX_TRAIL_LENGTH = 150000;
 
 let newBodyConfig = {
   mass: 100,
@@ -94,9 +99,8 @@ const colorPicker = document.getElementById('colorPicker');
 const infoPanel = document.getElementById('body-info');
 const bodyControlsPanel = document.getElementById('body-controls');
 
-const timeScaleSlider = document.getElementById('timeScaleSlider');
-const timeScaleValue = document.getElementById('timeScaleValue');
-
+const timeSlider = document.getElementById('timeScaleSlider');
+const timeLabel = document.getElementById('timeScaleValue');
 
 // ================== LOAD / SAVE ==================
 loadState();
@@ -172,13 +176,24 @@ function updateEditorMovement(dt) {
   selectedBody.trail.length = 0;
 }
 
-function updateTimeScaleUI(value) {
-  TIME_SCALE = value;
-  timeScaleValue.textContent = `${value.toFixed(1)}×`;
+function sliderToTime(v) {
+  const mid = 50;
+
+  if (v === mid) return 1;
+
+  if (v < mid) {
+    const t = v / mid;
+    return MIN_TIME * Math.pow(1 / MIN_TIME, t);
+  } else {
+    const t = (v - mid) / mid;
+    return Math.pow(MAX_TIME, t);
+  }
 }
 
-timeScaleSlider.addEventListener('input', e => {
-  updateTimeScaleUI(parseFloat(e.target.value));
+
+timeSlider.addEventListener('input', e => {
+  TIME_SCALE = sliderToTime(+e.target.value);
+  timeLabel.textContent = TIME_SCALE.toFixed(2) + '×';
 });
 
 
@@ -417,6 +432,94 @@ canvas.addEventListener('wheel', e => {
 let lastTime = performance.now();
 let trailCounter = 0;
 
+function resolveCollisions() {
+  for (let i = bodies.length - 1; i >= 0; i--) {
+    for (let j = i - 1; j >= 0; j--) {
+      const a = bodies[i];
+      const b = bodies[j];
+
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.hypot(dx, dy);
+
+      const ra = a.size / 2;
+      const rb = b.size / 2;
+      const minDist = ra + rb;
+
+      if (dist >= minDist) continue;
+
+      const penetration = minDist - dist;
+      const penetrationRatio = penetration / minDist;
+
+      if (penetrationRatio < MERGE_PENETRATION_RATIO) {
+        continue;
+      }
+
+      const totalMass = a.mass + b.mass;
+
+      const vx =
+        (a.vx * a.mass + b.vx * b.mass) / totalMass;
+      const vy =
+        (a.vy * a.mass + b.vy * b.mass) / totalMass;
+
+      const x =
+        (a.x * a.mass + b.x * b.mass) / totalMass;
+      const y =
+        (a.y * a.mass + b.y * b.mass) / totalMass;
+
+      const size = Math.cbrt(
+        Math.pow(a.size, 3) + Math.pow(b.size, 3)
+      );
+    
+
+      const isASun = a.image === SUN_IMAGE;
+      const isBSun = b.image === SUN_IMAGE;
+
+    let dominant;
+    let secondary;
+
+    if (isASun) {
+    dominant = a;
+    secondary = b;
+    } else if (isBSun) {
+    dominant = b;
+    secondary = a;
+    } else {
+    dominant = (a.size >= b.size) ? a : b;
+    secondary = (dominant === a) ? b : a;
+    }
+
+      const merged = new Body({
+  x,
+  y,
+  vx,
+  vy,
+  mass: totalMass,
+  size,
+  image: dominant.image || null,
+  color: dominant.image ? null : dominant.color
+});
+
+if (dominant.image === SUN_IMAGE) {
+  merged.size = dominant.size;
+  merged.image = SUN_IMAGE;
+}
+
+      merged.trail = [];
+      bodies.splice(i, 1);
+      bodies.splice(j, 1);
+      bodies.push(merged);
+
+      if (selectedBody === a || selectedBody === b) {
+        selectedBody = merged;
+      }
+
+      return;
+    }
+  }
+}
+
+
 function updatePhysics(dt) {
   for (let i = 0; i < bodies.length; i++) {
     let ax = 0, ay = 0;
@@ -444,6 +547,8 @@ function updatePhysics(dt) {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
   }
+
+  resolveCollisions();
 
   if (++trailCounter % TRAIL_STEP === 0) {
     for (const b of bodies) {
@@ -545,7 +650,7 @@ function loadState() {
 
 // ================== LOOP ==================
 function loop(now) {
-  let dt = (now - lastTime) * 0.001 * TIME_SCALE;
+  let dt = (now - lastTime) * 0.01 * TIME_SCALE;
   lastTime = now;
 
   if (!IS_PAUSED) {
