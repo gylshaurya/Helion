@@ -7,6 +7,9 @@ import { drawScene } from './render.js';
 const G = 0.5;
 const SUN_MASS = 10000;
 
+const FIXED_DT = 1 / 120;
+const MAX_STEPS_PER_FRAME = 10;
+const TRAIL_DT = 1 / 30;
 
 const TRAIL_STEP = 1;
 const STORAGE_KEY = 'animation_state';
@@ -17,8 +20,7 @@ const keys = new Set();
 const MERGE_PENETRATION_RATIO = 0.35; 
 
 const MIN_TIME = 0.1;
-const MAX_TIME = 200;
-
+const MAX_TIME = 100;
 
 // ================== UI STATE ==================
 let SHOW_TRAILS = true;
@@ -30,6 +32,9 @@ let IS_PAUSED = false;
 let IS_RESETTING = false;
 
 let MODE = 'VIEW';
+
+let lastTime = performance.now();
+let trailCounter = 0;
 
 let selectedBody = null;
 let inspectedBody = null;
@@ -43,6 +48,10 @@ let lastMouse = null;
 
 let isEditingVelocity = false;
 let velocityEditStart = null;
+
+let accumulator = 0;
+let trailTimer = 0;
+
 
 let TIME_SCALE = 1;
 let MAX_TRAIL_LENGTH = 150000;
@@ -190,13 +199,11 @@ function sliderToTime(v) {
   }
 }
 
-
 timeSlider.addEventListener('input', e => {
   TIME_SCALE = sliderToTime(+e.target.value);
+  if (Math.abs(TIME_SCALE - 1) < 0.05) TIME_SCALE = 1;
   timeLabel.textContent = TIME_SCALE.toFixed(2) + '×';
 });
-
-
 
 pauseBtn.onclick = () => {
   IS_PAUSED = !IS_PAUSED;
@@ -204,7 +211,6 @@ pauseBtn.onclick = () => {
 
   inspectedBody = null;
   
-
   if (!IS_PAUSED) {
     selectedBody = null;
     updateBodyControlsVisibility();
@@ -216,7 +222,7 @@ addBodyBtn.onclick = () => {
   pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
   MODE = 'ADD';
   ghostBody = null;
-
+  
   hideInfoPanel();
   updateBodyControlsVisibility();
 
@@ -429,8 +435,6 @@ canvas.addEventListener('wheel', e => {
 }, { passive: false });
 
 // ================== PHYSICS ==================
-let lastTime = performance.now();
-let trailCounter = 0;
 
 function resolveCollisions() {
   for (let i = bodies.length - 1; i >= 0; i--) {
@@ -650,13 +654,36 @@ function loadState() {
 
 // ================== LOOP ==================
 function loop(now) {
-  let dt = (now - lastTime) * 0.01 * TIME_SCALE;
+  let frameDt = (now - lastTime) / 1000;
   lastTime = now;
 
+  frameDt = Math.min(frameDt, 0.05);
+
   if (!IS_PAUSED) {
-    updatePhysics(dt);
+    accumulator += frameDt;
+
+    let steps = 0;
+
+    while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME) {
+      updatePhysics(FIXED_DT * TIME_SCALE*10);
+      accumulator -= FIXED_DT;
+      steps++;
+    }
+
+    resolveCollisions();
+
+    trailTimer += frameDt;
+    if (trailTimer >= TRAIL_DT) {
+      for (const b of bodies) {
+        b.trail.push({ x: b.x, y: b.y });
+        if (b.trail.length > MAX_TRAIL_LENGTH) b.trail.shift();
+      }
+      trailTimer = 0;
+    }
+
   } else {
-    updateEditorMovement(dt);
+    updateEditorMovement(frameDt);
+    accumulator = 0;
   }
 
   updateInfoPanel(inspectedBody);
@@ -677,6 +704,7 @@ function loop(now) {
 
   requestAnimationFrame(loop);
 }
+
 
 
 requestAnimationFrame(loop);
