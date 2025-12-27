@@ -52,9 +52,10 @@ let velocityEditStart = null;
 let accumulator = 0;
 let trailTimer = 0;
 
-
-let TIME_SCALE = 1;
+let TIME_SCALE = 10;
 let MAX_TRAIL_LENGTH = 150000;
+
+let cameraLoadedFromState = false;
 
 let newBodyConfig = {
   mass: 100,
@@ -77,17 +78,50 @@ cam.y = canvas.height / 2;
 const SUN_IMAGE = new Image();
 SUN_IMAGE.src = '../assets/sun.svg';
 
+const MERCURY_IMAGE = new Image();
+MERCURY_IMAGE.src = '../assets/mercury.png';
+
+const VENUS_IMAGE = new Image();
+VENUS_IMAGE.src = '../assets/venus.png';
+
 const EARTH_IMAGE = new Image();
 EARTH_IMAGE.src = '../assets/earth.svg';
 
 const MARS_IMAGE = new Image();
 MARS_IMAGE.src = '../assets/mars.svg';
 
+const JUPITER_IMAGE = new Image();
+JUPITER_IMAGE.src = '../assets/jupiter.png';
+
+const SATURN_IMAGE = new Image();
+SATURN_IMAGE.src = '../assets/saturn.png';
+
+const URANUS_IMAGE = new Image();
+URANUS_IMAGE.src = '../assets/uranus.png';
+
+const NEPTUNE_IMAGE = new Image();
+NEPTUNE_IMAGE.src = '../assets/neptune.png';
+
 // ================== BODIES ==================
 const bodies = [
-  new Body({ x: 0, y: 0, vx: 0, vy: 0, mass: SUN_MASS, size: 100, image: SUN_IMAGE }),
-  new Body({ x: 200, y: 0, vx: 0, vy: Math.sqrt(G * SUN_MASS / 200), mass: 100, size: 40, image: EARTH_IMAGE }),
-  new Body({ x: -300, y: 0, vx: 0, vy: -Math.sqrt(G * SUN_MASS / 300), mass: 80, size: 30, image: MARS_IMAGE })
+  new Body({
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    mass: SUN_MASS,
+    size: 120,
+    image: SUN_IMAGE
+  }),
+
+  makePlanet(150, 0.2, 20, 18, MERCURY_IMAGE),
+  makePlanet(300, 1.1, 40, 26, VENUS_IMAGE),
+  makePlanet(450, 2.3, 50, 30, EARTH_IMAGE),
+  makePlanet(600, 3.7, 30, 24, MARS_IMAGE),
+  makePlanet(900, 0.9, 300, 70, JUPITER_IMAGE),
+  makePlanet(1200, 2.0, 250, 65, SATURN_IMAGE),
+  makePlanet(1500, 4.1, 120, 50, URANUS_IMAGE),
+  makePlanet(1800, 5.2, 120, 50, NEPTUNE_IMAGE)
 ];
 
 
@@ -96,6 +130,7 @@ const pauseBtn = document.getElementById('pauseBtn');
 const pauseIcon = document.getElementById('pauseIcon');
 const addBodyBtn = document.getElementById('addBodyBtn');
 const resetBtn = document.getElementById('resetBtn');
+const recenterBtn = document.getElementById('recenterBtn');
 
 const toggleTrails = document.getElementById('toggleTrails');
 const toggleVelocity = document.getElementById('toggleVelocity');
@@ -119,6 +154,21 @@ window.addEventListener('beforeunload', saveState);
 toggleTrails.onchange = e => SHOW_TRAILS = e.target.checked;
 toggleVelocity.onchange = e => SHOW_VELOCITY = e.target.checked;
 toggleForce.onchange = e => SHOW_FORCE = e.target.checked;
+
+function makePlanet(r, angle, mass, size, image, color) {
+  const speed = Math.sqrt(G * SUN_MASS / r);
+
+  return new Body({
+    x: Math.cos(angle) * r,
+    y: Math.sin(angle) * r,
+    vx: -Math.sin(angle) * speed,
+    vy:  Math.cos(angle) * speed,
+    mass,
+    size,
+    image,
+    color
+  });
+}
 
 function updateBodyControlsVisibility() {
   shouldShow = MODE === 'ADD' || (MODE === 'VIEW' && selectedBody !== null);
@@ -156,11 +206,39 @@ function updateInfoPanel(body) {
   `;
 }
 
-
 function hideInfoPanel() {
   infoPanel.classList.add('hidden');
   inspectedBody = null;
 }
+
+function recenterAndFit() {
+  
+  let totalMass = 0;
+  let cx = 0, cy = 0;
+
+  for (const b of bodies) {
+    totalMass += b.mass;
+    cx += b.x * b.mass;
+    cy += b.y * b.mass;
+  }
+
+  cx /= totalMass;
+  cy /= totalMass;
+
+  let maxR = 0;
+  for (const b of bodies) {
+    const r = Math.hypot(b.x - cx, b.y - cy) + b.size / 2;
+    if (r > maxR) maxR = r;
+  }
+
+  const padding = -100;
+  const viewSize = Math.min(canvas.width, canvas.height);
+  cam.scale = viewSize / (2 * (maxR + padding));
+
+  cam.x = canvas.width / (2 * cam.scale) - cx;
+  cam.y = canvas.height / (2 * cam.scale) - cy;
+}
+
 
 function updateEditorMovement(dt) {
   if (!IS_PAUSED || !selectedBody) return;
@@ -186,24 +264,30 @@ function updateEditorMovement(dt) {
 }
 
 function sliderToTime(v) {
-  const mid = 50;
-
-  if (v === mid) return 1;
-
-  if (v < mid) {
-    const t = v / mid;
-    return MIN_TIME * Math.pow(1 / MIN_TIME, t);
-  } else {
-    const t = (v - mid) / mid;
-    return Math.pow(MAX_TIME, t);
-  }
+  const t = v / 100; // normalized 0 → 1
+  return MIN_TIME * Math.pow(MAX_TIME / MIN_TIME, t);
 }
+
 
 timeSlider.addEventListener('input', e => {
   TIME_SCALE = sliderToTime(+e.target.value);
-  if (Math.abs(TIME_SCALE - 1) < 0.05) TIME_SCALE = 1;
   timeLabel.textContent = TIME_SCALE.toFixed(2) + '×';
 });
+
+
+function pickBodyAt(x, y) {
+  for (let i = bodies.length - 1; i >= 0; i--) {
+    const b = bodies[i];
+    const r = b.size / 2;
+    const dx = x - b.x;
+    const dy = y - b.y;
+    if (dx * dx + dy * dy <= r * r) {
+      return b;
+    }
+  }
+  return null;
+}
+
 
 pauseBtn.onclick = () => {
   IS_PAUSED = !IS_PAUSED;
@@ -222,13 +306,17 @@ addBodyBtn.onclick = () => {
   pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
   MODE = 'ADD';
   ghostBody = null;
-  
+
   hideInfoPanel();
   updateBodyControlsVisibility();
 
   massSlider.value = newBodyConfig.mass;
   radiusSlider.value = newBodyConfig.size;
   colorPicker.value = newBodyConfig.color;
+};
+
+recenterBtn.onclick = () => {
+    recenterAndFit();
 };
 
 resetBtn.onclick = () => {
@@ -278,8 +366,8 @@ window.addEventListener('keydown', e => {
 
     if (!IS_PAUSED) {
       selectedBody = null;
-      updateBodyControlsVisibility();
       isEditingVelocity = false;
+      updateBodyControlsVisibility();
     }
     return;
   }
@@ -304,19 +392,6 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
   keys.delete(e.key.toLowerCase());
 });
-
-function pickBodyAt(x, y) {
-  for (let i = bodies.length - 1; i >= 0; i--) {
-    const b = bodies[i];
-    const r = b.size / 2;
-    const dx = x - b.x;
-    const dy = y - b.y;
-    if (dx * dx + dy * dy <= r * r) {
-      return b;
-    }
-  }
-  return null;
-}
 
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) lastTime = performance.now();
@@ -356,7 +431,6 @@ canvas.addEventListener('mousedown', e => {
 
     if (hit) {
       selectedBody = hit;
-      updateBodyControlsVisibility();
       massSlider.value = hit.mass;
       radiusSlider.value = hit.size;
       colorPicker.value = hit.color || '#ffffff';
@@ -578,8 +652,14 @@ function saveState() {
     trail: b.trail.slice(-MAX_TRAIL_LENGTH),
     renderType: b.image ? 'image' : 'color',
     imageKey: b.image === SUN_IMAGE ? 'sun'
+            : b.image === MERCURY_IMAGE ? 'mercury'
+            : b.image === VENUS_IMAGE ? 'venus'
             : b.image === EARTH_IMAGE ? 'earth'
             : b.image === MARS_IMAGE ? 'mars'
+            : b.image === JUPITER_IMAGE ? 'jupiter'
+            : b.image === SATURN_IMAGE ? 'saturn'
+            : b.image === URANUS_IMAGE ? 'uranus'
+            : b.image === NEPTUNE_IMAGE ? 'neptune'
             : null,
     color: b.color || null
     })),
@@ -611,9 +691,16 @@ function loadState() {
     let color = null;
 
     if (saved.renderType === 'image') {
-        if (saved.imageKey === 'sun') image = SUN_IMAGE;
-        if (saved.imageKey === 'earth') image = EARTH_IMAGE;
-        if (saved.imageKey === 'mars') image = MARS_IMAGE;
+    if (saved.imageKey === 'sun') image = SUN_IMAGE;
+    if (saved.imageKey === 'mercury') image = MERCURY_IMAGE;
+    if (saved.imageKey === 'venus') image = VENUS_IMAGE;
+    if (saved.imageKey === 'earth') image = EARTH_IMAGE;
+    if (saved.imageKey === 'mars') image = MARS_IMAGE;
+    if (saved.imageKey === 'jupiter') image = JUPITER_IMAGE;
+    if (saved.imageKey === 'saturn') image = SATURN_IMAGE;
+    if (saved.imageKey === 'uranus') image = URANUS_IMAGE;
+    if (saved.imageKey === 'neptune') image = NEPTUNE_IMAGE;
+
     }
 
     if (saved.renderType === 'color') {
@@ -665,7 +752,7 @@ function loop(now) {
     let steps = 0;
 
     while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME) {
-      updatePhysics(FIXED_DT * TIME_SCALE*10);
+      updatePhysics(FIXED_DT * TIME_SCALE);
       accumulator -= FIXED_DT;
       steps++;
     }
