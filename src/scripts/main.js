@@ -434,6 +434,7 @@ canvas.addEventListener('mousedown', e => {
       massSlider.value = hit.mass;
       radiusSlider.value = hit.size;
       colorPicker.value = hit.color || '#ffffff';
+      updateBodyControlsVisibility();
 
       isEditingVelocity = true;
       velocityEditStart = { x: hit.x, y: hit.y };
