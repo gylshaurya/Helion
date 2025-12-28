@@ -17,12 +17,10 @@
 
     <div class="divider"></div>
     
-    <div class="time-scale">
-
-      <div class="time-scale-header"><span>Time</span><span id="timeScaleValue">1.0x</span>
-
-    </div>
+    <div class="slider-group">
+      <div class="slider-header"><span>Time</span><span id="timeScaleValue">1.0x</span></div>
     <input type="range" id="timeScaleSlider" min="0" max="100" value="50"/>
+    </div>
 
     <div class="divider"></div>
 
@@ -46,10 +44,24 @@
       <h3>Body Controls</h3>
 
       <div class="divider"></div>
+      
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Mass</span>
+          <span class="slider-value" id="massValue">100</span>
+        </div>
+        <input type="range" id="massSlider" min="1" max="10000" />
+      </div>
 
-      <label>Mass<input type="range" id="massSlider" min="1" max="10000" /></label>
 
-      <label>Radius<input type="range" id="radiusSlider" min="10" max="200" /></label>
+      <div class="slider-group">
+      <div class="slider-header">
+        <span>Radius</span>
+        <span class="slider-value" id="sizeValue">20</span>
+      </div>
+      <input type="range" id="sizeSlider" min="10" max="200" />
+      </div>
+
 
       <div class="divider"></div>
       

@@ -137,7 +137,9 @@ const toggleVelocity = document.getElementById('toggleVelocity');
 const toggleForce = document.getElementById('toggleForce');
 
 const massSlider = document.getElementById('massSlider');
-const radiusSlider = document.getElementById('radiusSlider');
+const sizeSlider = document.getElementById('sizeSlider');
+const massLabel = document.getElementById('massValue');
+const sizeLabel = document.getElementById('sizeValue');
 const colorPicker = document.getElementById('colorPicker');
 
 const infoPanel = document.getElementById('body-info');
@@ -292,8 +294,6 @@ function pickBodyAt(x, y) {
 pauseBtn.onclick = () => {
   IS_PAUSED = !IS_PAUSED;
   pauseIcon.src = IS_PAUSED ? '../assets/play.png' : '../assets/pause.png';
-
-  inspectedBody = null;
   
   if (!IS_PAUSED) {
     selectedBody = null;
@@ -311,7 +311,9 @@ addBodyBtn.onclick = () => {
   updateBodyControlsVisibility();
 
   massSlider.value = newBodyConfig.mass;
-  radiusSlider.value = newBodyConfig.size;
+  sizeSlider.value = newBodyConfig.size;
+  massLabel.textContent = hit.mass.toFixed(0);
+  sizeLabel.textContent = hit.size.toFixed(0);
   colorPicker.value = newBodyConfig.color;
 };
 
@@ -328,6 +330,7 @@ resetBtn.onclick = () => {
 // ================== ADD BODY CONTROLS ==================
 massSlider.oninput = e => {
   const v = +e.target.value;
+  massLabel.textContent = v.toFixed(0);
   if (selectedBody) {
     selectedBody.mass = v;
   } else {
@@ -335,8 +338,9 @@ massSlider.oninput = e => {
   }
 };
 
-radiusSlider.oninput = e => {
+sizeSlider.oninput = e => {
   const v = +e.target.value;
+  sizeLabel.textContent = v.toFixed(0);
   if (selectedBody) {
     selectedBody.size = v;
   } else {
@@ -432,7 +436,9 @@ canvas.addEventListener('mousedown', e => {
     if (hit) {
       selectedBody = hit;
       massSlider.value = hit.mass;
-      radiusSlider.value = hit.size;
+      sizeSlider.value = hit.size;
+      massLabel.textContent = hit.mass.toFixed(0);
+      sizeLabel.textContent = hit.size.toFixed(0);
       colorPicker.value = hit.color || '#ffffff';
       updateBodyControlsVisibility();
 
