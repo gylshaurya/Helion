@@ -79,10 +79,10 @@ const SUN_IMAGE = new Image();
 SUN_IMAGE.src = '../assets/sun.svg';
 
 const MERCURY_IMAGE = new Image();
-MERCURY_IMAGE.src = '../assets/mercury.png';
+MERCURY_IMAGE.src = '../assets/mercury.svg';
 
 const VENUS_IMAGE = new Image();
-VENUS_IMAGE.src = '../assets/venus.png';
+VENUS_IMAGE.src = '../assets/venus.svg';
 
 const EARTH_IMAGE = new Image();
 EARTH_IMAGE.src = '../assets/earth.svg';
@@ -91,16 +91,16 @@ const MARS_IMAGE = new Image();
 MARS_IMAGE.src = '../assets/mars.svg';
 
 const JUPITER_IMAGE = new Image();
-JUPITER_IMAGE.src = '../assets/jupiter.png';
+JUPITER_IMAGE.src = '../assets/jupiter.svg';
 
 const SATURN_IMAGE = new Image();
-SATURN_IMAGE.src = '../assets/saturn.png';
+SATURN_IMAGE.src = '../assets/saturn.svg';
 
 const URANUS_IMAGE = new Image();
-URANUS_IMAGE.src = '../assets/uranus.png';
+URANUS_IMAGE.src = '../assets/uranus.svg';
 
 const NEPTUNE_IMAGE = new Image();
-NEPTUNE_IMAGE.src = '../assets/neptune.png';
+NEPTUNE_IMAGE.src = '../assets/neptune.svg';
 
 // ================== BODIES ==================
 const bodies = [
@@ -312,8 +312,8 @@ addBodyBtn.onclick = () => {
 
   massSlider.value = newBodyConfig.mass;
   sizeSlider.value = newBodyConfig.size;
-  massLabel.textContent = hit.mass.toFixed(0);
-  sizeLabel.textContent = hit.size.toFixed(0);
+  massLabel.textContent = newBodyConfig.mass.toFixed(0);
+  sizeLabel.textContent = newBodyConfig.size.toFixed(0);
   colorPicker.value = newBodyConfig.color;
 };
 
@@ -670,7 +670,21 @@ function saveState() {
             : null,
     color: b.color || null
     })),
-    ui: { SHOW_TRAILS, SHOW_VELOCITY, SHOW_FORCE }
+    ui: {
+    SHOW_TRAILS,
+    SHOW_VELOCITY,
+    SHOW_FORCE,
+
+    IS_PAUSED,
+    TIME_SCALE,
+    timeSliderValue: timeSlider.value,
+
+    inspectedBodyIndex: inspectedBody ? bodies.indexOf(inspectedBody) : null,
+    selectedBodyIndex: selectedBody ? bodies.indexOf(selectedBody) : null,
+
+    MODE
+}
+
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -739,7 +753,44 @@ function loadState() {
     toggleTrails.checked = SHOW_TRAILS;
     toggleVelocity.checked = SHOW_VELOCITY;
     toggleForce.checked = SHOW_FORCE;
+
+    // ---- Time slider ----
+    if (typeof state.ui.TIME_SCALE === 'number') {
+      TIME_SCALE = state.ui.TIME_SCALE;
+      timeSlider.value = state.ui.timeSliderValue ?? timeSlider.value;
+      timeLabel.textContent = TIME_SCALE.toFixed(2) + '×';
     }
+
+    // ---- Pause / Play ----
+    IS_PAUSED = !!state.ui.IS_PAUSED;
+    pauseIcon.src = IS_PAUSED
+      ? '../assets/play.png'
+      : '../assets/pause.png';
+
+    // ---- Mode ----
+    MODE = state.ui.MODE ?? 'VIEW';
+
+    // ---- Restore inspected body ----
+    if (state.ui.inspectedBodyIndex !== null) {
+      inspectedBody = bodies[state.ui.inspectedBodyIndex] ?? null;
+      if (inspectedBody) showInfoPanel();
+    }
+
+    // ---- Restore selected body ----
+    if (state.ui.selectedBodyIndex !== null) {
+      selectedBody = bodies[state.ui.selectedBodyIndex] ?? null;
+      if (selectedBody) {
+        massSlider.value = selectedBody.mass;
+        sizeSlider.value = selectedBody.size;
+        massLabel.textContent = selectedBody.mass.toFixed(0);
+        sizeLabel.textContent = selectedBody.size.toFixed(0);
+        colorPicker.value = selectedBody.color || '#ffffff';
+      }
+    }
+
+    updateBodyControlsVisibility();
+  }
+
 
   } catch (e) {
     console.warn('Failed to load state', e);
