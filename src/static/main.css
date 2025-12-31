@@ -1,56 +1,235 @@
 html, body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 canvas {
-    width: 100vw;
-    height: 100vh;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
 }
 
-#toolbar {
+#app-title {
   position: fixed;
   top: 16px;
-  left: 16px;
+  left: 20px;
+
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+
+  text-shadow: 0 0 12px rgba(255,255,255,0.08);
+
+  color: #e5e7eb;
+  opacity: 0.7;
+
+  z-index: 12;
+
+  pointer-events: none;
+}
+
+.panel {
+  width: 100%;
+  background: rgba(18, 18, 20, 0.88);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  pointer-events: auto;
+}
+
+#left-toolbar {
+  position: fixed;
+  top: 50px;
+  left: 15px;
+
+  width: 180px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
 
-  padding: 10px 14px;
-  background: rgba(20, 20, 20, 0.85);
-  backdrop-filter: blur(8px);
-  border-radius: 10px;
-
-  font-family: system-ui, -apple-system, sans-serif;
-  color: white;
   z-index: 10;
 }
 
-#toolbar label {
+#body-controls.hidden {
+  display: none;
+}
+
+
+.pause-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#right-toolbar {
+  position: fixed;
+  top: 20px;
+  right: 40px;
+
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  z-index: 10;
+  pointer-events: none;
+}
+
+#right-toolbar .panel {
+  pointer-events: auto;
+}
+
+#massSlider{
+  margin-bottom: 15px;
+}
+
+.slider-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slider-value {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #d1d5db;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #d1d5db;
+}
+
+#timeScaleValue {
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+label.toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.toggle input {
+  accent-color: #9ca3af;
+  cursor: pointer;
+}
+
+input[type="range"],
+input[type="color"] {
+  margin-top: 6px;
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(255,255,255,0.1);
+  margin: 6px 0;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: none;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  justify-content: center;
   cursor: pointer;
 }
 
-#toolbar input[type="checkbox"] {
-  accent-color: #014084;
-  cursor: pointer;
+.icon-btn img {
+  width: 18px;
+  height: 18px;
+  filter: invert(1);
 }
 
-#resetBtn {
-  background: #ff4d4d;
+.icon-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.text-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
   border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 14px;
+  color: #f9fafb;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-#resetBtn:hover {
-  background: #ff6666;
+.text-btn:hover {
+  background: rgba(255,255,255,0.15);
 }
 
+#body-info {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#body-info.hidden {
+  display: none;
+}
+
+#body-info div {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+#body-info div b {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+
+  background: rgba(255,255,255,0.08);
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.12);
+
+  font-size: 28px;
+  line-height: 0;
+  cursor: pointer;
+
+  z-index: 10;
+}
+
+.fab:hover {
+  background: rgba(255,255,255,0.15);
+}
