@@ -1,26 +1,24 @@
+import {
+  G, SUN_MASS, FIXED_DT, MAX_STEPS_PER_FRAME,
+  TRAIL_STEP,TRAIL_DT, keys, MAX_TRAIL_LENGTH,
+  MERGE_PENETRATION_RATIO,
+  EDIT_MOVE_SPEED,
+  MIN_TIME, MAX_TIME,
+  STORAGE_KEY, SUN_IMAGE, MERCURY_IMAGE,
+  VENUS_IMAGE, EARTH_IMAGE, MARS_IMAGE, JUPITER_IMAGE,
+  SATURN_IMAGE, URANUS_IMAGE, NEPTUNE_IMAGE, ESCAPE_EPS,
+  MAX_SYSTEM_RADIUS,
+
+  pauseBtn, pauseIcon, addBodyBtn, resetBtn, recenterBtn, 
+  toggleTrails, toggleVelocity, toggleForce, massSlider,
+  massLabel, sizeSlider, sizeLabel, colorPicker,
+  infoPanel, bodyControlsPanel, timeSlider, timeLabel,
+} from './constants.js';
+
 import { Camera } from './camera.js';
 import { Body } from './bodies.js';
 import { getMousePos} from './utils.js';
 import { drawScene } from './render.js';
-
-// ================== CONSTANTS ==================
-const G = 0.5;
-const SUN_MASS = 10000;
-
-const FIXED_DT = 1 / 120;
-const MAX_STEPS_PER_FRAME = 10;
-const TRAIL_DT = 1 / 30;
-
-const TRAIL_STEP = 1;
-const STORAGE_KEY = 'animation_state';
-
-const EDIT_MOVE_SPEED = 10;
-const keys = new Set();
-
-const MERGE_PENETRATION_RATIO = 0.35; 
-
-const MIN_TIME = 0.1;
-const MAX_TIME = 100;
 
 // ================== UI STATE ==================
 let SHOW_TRAILS = true;
@@ -53,9 +51,6 @@ let accumulator = 0;
 let trailTimer = 0;
 
 let TIME_SCALE = 10;
-let MAX_TRAIL_LENGTH = 150000;
-
-let cameraLoadedFromState = false;
 
 let newBodyConfig = {
   mass: 100,
@@ -74,34 +69,6 @@ const cam = new Camera();
 cam.x = canvas.width / 2;
 cam.y = canvas.height / 2;
 
-// ================== IMAGES ==================
-const SUN_IMAGE = new Image();
-SUN_IMAGE.src = '../assets/sun.svg';
-
-const MERCURY_IMAGE = new Image();
-MERCURY_IMAGE.src = '../assets/mercury.svg';
-
-const VENUS_IMAGE = new Image();
-VENUS_IMAGE.src = '../assets/venus.svg';
-
-const EARTH_IMAGE = new Image();
-EARTH_IMAGE.src = '../assets/earth.svg';
-
-const MARS_IMAGE = new Image();
-MARS_IMAGE.src = '../assets/mars.svg';
-
-const JUPITER_IMAGE = new Image();
-JUPITER_IMAGE.src = '../assets/jupiter.svg';
-
-const SATURN_IMAGE = new Image();
-SATURN_IMAGE.src = '../assets/saturn.svg';
-
-const URANUS_IMAGE = new Image();
-URANUS_IMAGE.src = '../assets/uranus.svg';
-
-const NEPTUNE_IMAGE = new Image();
-NEPTUNE_IMAGE.src = '../assets/neptune.svg';
-
 // ================== BODIES ==================
 const bodies = [
   new Body({
@@ -110,92 +77,43 @@ const bodies = [
     vx: 0,
     vy: 0,
     mass: SUN_MASS,
-    size: 120,
+    size: 250,
     image: SUN_IMAGE
   }),
 
-  makePlanet(150, 0.2, 20, 18, MERCURY_IMAGE),
-  makePlanet(300, 1.1, 40, 26, VENUS_IMAGE),
-  makePlanet(450, 2.3, 50, 30, EARTH_IMAGE),
-  makePlanet(600, 3.7, 30, 24, MARS_IMAGE),
-  makePlanet(900, 0.9, 300, 70, JUPITER_IMAGE),
-  makePlanet(1200, 2.0, 250, 65, SATURN_IMAGE),
-  makePlanet(1500, 4.1, 120, 50, URANUS_IMAGE),
-  makePlanet(1800, 5.2, 120, 50, NEPTUNE_IMAGE)
+  makePlanet(200, 0.2, 20, 25, MERCURY_IMAGE),
+  makePlanet(350, 1.1, 40, 62, VENUS_IMAGE),
+  makePlanet(500, 2.3, 50, 65, EARTH_IMAGE),
+  makePlanet(650, 3.7, 30, 35, MARS_IMAGE),
+  makePlanet(900, 0.9, 300, 120, JUPITER_IMAGE),
+  makePlanet(1500, 2.0, 250, 90, SATURN_IMAGE),
+  makePlanet(1900, 4.1, 120, 70, URANUS_IMAGE),
+  makePlanet(2200, 5.2, 120, 60, NEPTUNE_IMAGE)
 ];
 
+const SUN = bodies[0];
 
-// ================== TOOLBAR ==================
-const pauseBtn = document.getElementById('pauseBtn');
-const pauseIcon = document.getElementById('pauseIcon');
-const addBodyBtn = document.getElementById('addBodyBtn');
-const resetBtn = document.getElementById('resetBtn');
-const recenterBtn = document.getElementById('recenterBtn');
-
-const toggleTrails = document.getElementById('toggleTrails');
-const toggleVelocity = document.getElementById('toggleVelocity');
-const toggleForce = document.getElementById('toggleForce');
-
-const massSlider = document.getElementById('massSlider');
-const sizeSlider = document.getElementById('sizeSlider');
-const massLabel = document.getElementById('massValue');
-const sizeLabel = document.getElementById('sizeValue');
-const colorPicker = document.getElementById('colorPicker');
-
-const infoPanel = document.getElementById('body-info');
-const bodyControlsPanel = document.getElementById('body-controls');
-
-const timeSlider = document.getElementById('timeScaleSlider');
-const timeLabel = document.getElementById('timeScaleValue');
-
-// ================== LOAD / SAVE ==================
+// ================== SETUP ==================
 loadState();
 window.addEventListener('beforeunload', saveState);
-
-// ================== UI EVENTS ==================
-toggleTrails.onchange = e => SHOW_TRAILS = e.target.checked;
-toggleVelocity.onchange = e => SHOW_VELOCITY = e.target.checked;
-toggleForce.onchange = e => SHOW_FORCE = e.target.checked;
-
-function makePlanet(r, angle, mass, size, image, color) {
-  const speed = Math.sqrt(G * SUN_MASS / r);
-
-  return new Body({
-    x: Math.cos(angle) * r,
-    y: Math.sin(angle) * r,
-    vx: -Math.sin(angle) * speed,
-    vy:  Math.cos(angle) * speed,
-    mass,
-    size,
-    image,
-    color
-  });
-}
-
-function updateBodyControlsVisibility() {
-  shouldShow = MODE === 'ADD' || (MODE === 'VIEW' && selectedBody !== null);
-
-  bodyControlsPanel.classList.toggle('hidden', !shouldShow);
-}
 
 function showInfoPanel() {
   infoPanel.classList.remove('hidden');
 }
 
 function updateInfoPanel(body) {
-  const panel = document.getElementById('body-info');
 
   if (!body) {
-    panel.classList.add('hidden');
-    panel.innerHTML = '';
+    infoPanel.classList.add('hidden');
+    infoPanel.innerHTML = '';
     return;
   }
 
   const speed = Math.hypot(body.vx, body.vy);
   const forceMag = Math.hypot(body.force.x, body.force.y);
 
-  panel.classList.remove('hidden');
-  panel.innerHTML = `
+  infoPanel.classList.remove('hidden');
+  infoPanel.innerHTML = `
     <h3>Body Info</h3>
     <div><b>Mass</b><span>${body.mass.toFixed(1)}</span></div>
     <div><b>Radius</b><span>${(body.size / 2).toFixed(1)}</span></div>
@@ -210,7 +128,52 @@ function updateInfoPanel(body) {
 
 function hideInfoPanel() {
   infoPanel.classList.add('hidden');
-  inspectedBody = null;
+}
+
+function updateBodyControlsVisibility() {
+  shouldShow = MODE === 'ADD' || (MODE === 'VIEW' && selectedBody !== null);
+
+  bodyControlsPanel.classList.toggle('hidden', !shouldShow);
+}
+
+function makePlanet(r, angle, mass, size, image, color) {
+  const speed = Math.sqrt(G * SUN_MASS / r);
+
+  return new Body({
+    x: Math.cos(angle) * r,
+    y: Math.sin(angle) * r,
+    vx: -Math.sin(angle) * speed,
+    vy:  Math.cos(angle) * speed,
+    mass,
+    size,
+    angularVelocity: speed / r,
+    image,
+    color
+  });
+}
+
+// ================== UI EVENTS ==================
+toggleTrails.onchange = e => SHOW_TRAILS = e.target.checked;
+toggleVelocity.onchange = e => SHOW_VELOCITY = e.target.checked;
+toggleForce.onchange = e => SHOW_FORCE = e.target.checked;
+
+function despawanDistantBodies() {
+  for (let i = bodies.length - 1; i >= 0; i--) {
+    const b = bodies[i];
+
+    if (b === SUN) continue;
+
+    const dx = b.x - SUN.x;
+    const dy = b.y - SUN.y;
+    const r = Math.hypot(dx, dy);
+
+    if (b.isEscaping && r > MAX_SYSTEM_RADIUS) {
+      bodies.splice(i, 1);
+
+      if (selectedBody === b) selectedBody = null;
+      if (inspectedBody === b) inspectedBody = null;
+    }
+  }
 }
 
 function recenterAndFit() {
@@ -240,7 +203,6 @@ function recenterAndFit() {
   cam.x = canvas.width / (2 * cam.scale) - cx;
   cam.y = canvas.height / (2 * cam.scale) - cy;
 }
-
 
 function updateEditorMovement(dt) {
   if (!IS_PAUSED || !selectedBody) return;
@@ -307,8 +269,7 @@ addBodyBtn.onclick = () => {
   MODE = 'ADD';
   ghostBody = null;
 
-  hideInfoPanel();
-  updateBodyControlsVisibility();
+  updateBodyControlsVisibility(); 
 
   massSlider.value = newBodyConfig.mass;
   sizeSlider.value = newBodyConfig.size;
@@ -408,7 +369,7 @@ canvas.addEventListener('mousedown', e => {
 
   // ---------- ADD MODE ----------
   if (MODE === 'ADD') {
-    ghostBody = { x: world.x, y: world.y, vx: 0, vy: 0 };
+    ghostBody = { x: world.x, y: world.y, vx: 0, vy: 0, force: {x:0,y:0}};
     velocityStart = world;
     return;
   }
@@ -419,8 +380,6 @@ canvas.addEventListener('mousedown', e => {
 
     if (hit) {
       inspectedBody = hit;
-      showInfoPanel(hit);
-      
       return;
     } else {
       inspectedBody = null;
@@ -435,17 +394,21 @@ canvas.addEventListener('mousedown', e => {
 
     if (hit) {
       selectedBody = hit;
+      updateInfoPanel(hit);
+      updateBodyControlsVisibility();
       massSlider.value = hit.mass;
       sizeSlider.value = hit.size;
       massLabel.textContent = hit.mass.toFixed(0);
       sizeLabel.textContent = hit.size.toFixed(0);
       colorPicker.value = hit.color || '#ffffff';
-      updateBodyControlsVisibility();
+      
 
       isEditingVelocity = true;
       velocityEditStart = { x: hit.x, y: hit.y };
       return;
     } else {
+      hideInfoPanel();
+      updateBodyControlsVisibility();
       selectedBody = null;
     }
   }
@@ -463,6 +426,7 @@ canvas.addEventListener('mousemove', e => {
     const world = cam.screenToWorld(mouse.x, mouse.y);
     ghostBody.vx = (world.x - velocityStart.x) * 0.05;
     ghostBody.vy = (world.y - velocityStart.y) * 0.05;
+    updateInfoPanel(ghostBody);
     return;
   }
 
@@ -496,6 +460,8 @@ canvas.addEventListener('mouseup', () => {
     vx: ghostBody.vx,
     vy: ghostBody.vy,
     mass: newBodyConfig.mass,
+    angularVelocity: Math.random() * 0.5 - 0.25,
+    angle: 0,
     size: newBodyConfig.size,
     color: newBodyConfig.color,
     image: null
@@ -516,6 +482,34 @@ canvas.addEventListener('wheel', e => {
 }, { passive: false });
 
 // ================== PHYSICS ==================
+
+function detectEscapes() {
+  for (const b of bodies) {
+    if (b === bodies[0]) {
+      b.isEscaping = false;
+      continue;
+    }
+
+    const dx = b.x - SUN.x;
+    const dy = b.y - SUN.y;
+    const r = Math.hypot(dx, dy);
+
+    const vx = b.vx - SUN.vx;
+    const vy = b.vy - SUN.vy;
+    const v2 = vx * vx + vy * vy;
+
+    const energy = (v2 / 2) - (G * SUN.mass / r);
+
+    b.isEscaping = energy > 0;
+
+    if (energy > ESCAPE_EPS) {
+      b.isEscaping = true;
+    } else if (energy < -ESCAPE_EPS) {
+      b.isEscaping = false;
+    }
+
+  }
+}
 
 function resolveCollisions() {
   for (let i = bodies.length - 1; i >= 0; i--) {
@@ -555,6 +549,17 @@ function resolveCollisions() {
       const size = Math.cbrt(
         Math.pow(a.size, 3) + Math.pow(b.size, 3)
       );
+
+      const px = b.mass * b.vx - a.mass * a.vx;
+      const py = b.mass * b.vy - a.mass * a.vy;
+
+      const orbitalL = dx * py - dy * px;
+
+      const spinL =
+        a.inertia * a.angularVelocity +
+        b.inertia * b.angularVelocity;
+
+      const totalL = orbitalL + spinL;
     
 
       const isASun = a.image === SUN_IMAGE;
@@ -575,15 +580,18 @@ function resolveCollisions() {
     }
 
       const merged = new Body({
-  x,
-  y,
-  vx,
-  vy,
-  mass: totalMass,
-  size,
-  image: dominant.image || null,
-  color: dominant.image ? null : dominant.color
-});
+      x,
+      y,
+      vx,
+      vy,
+      mass: totalMass,
+      size,
+      image: dominant.image || null,
+      color: dominant.image ? null : dominant.color
+    });
+
+    merged.angularVelocity = totalL / merged.inertia;
+    merged.angle = 0;
 
 if (dominant.image === SUN_IMAGE) {
   merged.size = dominant.size;
@@ -633,6 +641,14 @@ function updatePhysics(dt) {
     b.y += b.vy * dt;
   }
 
+  for (const b of bodies) {
+    const alpha = b.torque / b.inertia;
+    b.angularVelocity += alpha * dt;
+    b.angle += b.angularVelocity * dt;
+    b.torque = 0;
+  }
+
+  detectEscapes();
   resolveCollisions();
 
   if (++trailCounter % TRAIL_STEP === 0) {
@@ -655,6 +671,8 @@ function saveState() {
     vx: b.vx,
     vy: b.vy,
     mass: b.mass,
+    angularVelocity: b.angularVelocity,
+    angle: b.angle,
     size: b.size,
     trail: b.trail.slice(-MAX_TRAIL_LENGTH),
     renderType: b.image ? 'image' : 'color',
@@ -739,6 +757,11 @@ function loadState() {
         color
     });
 
+
+    body.angularVelocity = saved.angularVelocity || 0;
+    body.angle = saved.angle || 0;
+
+
     body.trail = saved.trail?.map(p => ({ x: p.x, y: p.y })) || [];
     bodies.push(body);
     }
@@ -815,7 +838,7 @@ function loop(now) {
       steps++;
     }
 
-    resolveCollisions();
+    updateInfoPanel(inspectedBody);
 
     trailTimer += frameDt;
     if (trailTimer >= TRAIL_DT) {
@@ -828,10 +851,12 @@ function loop(now) {
 
   } else {
     updateEditorMovement(frameDt);
+    updateInfoPanel(selectedBody);
     accumulator = 0;
   }
-
-  updateInfoPanel(inspectedBody);
+ 
+  despawanDistantBodies();
+  
 
   drawScene(ctx, cam, bodies, {
     showTrails: SHOW_TRAILS,

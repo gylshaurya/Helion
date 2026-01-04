@@ -12,6 +12,17 @@ export class Body {
     this.force = { x: 0, y: 0 };
     this.trail = [];
     this.selected = false;
+
+    this.angle = 0; 
+    this.angularVelocity = 0; 
+    this.torque = 0;
+
+    this.isEscaping = false;
+  }
+
+  get inertia() {
+  const r = this.size / 2;
+  return 0.5 * this.mass * r * r;
   }
 
   containsPoint(px, py) {
