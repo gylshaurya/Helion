@@ -146,7 +146,8 @@ function makePlanet(r, angle, mass, size, image, color) {
     vy:  Math.cos(angle) * speed,
     mass,
     size,
-    angularVelocity: speed / r,
+    angularVelocity: speed*5 / r,
+    angle:0,
     image,
     color
   });
@@ -228,7 +229,7 @@ function updateEditorMovement(dt) {
 }
 
 function sliderToTime(v) {
-  const t = v / 100; // normalized 0 → 1
+  const t = v / 100;
   return MIN_TIME * Math.pow(MAX_TIME / MIN_TIME, t);
 }
 
@@ -426,7 +427,6 @@ canvas.addEventListener('mousemove', e => {
     const world = cam.screenToWorld(mouse.x, mouse.y);
     ghostBody.vx = (world.x - velocityStart.x) * 0.05;
     ghostBody.vy = (world.y - velocityStart.y) * 0.05;
-    updateInfoPanel(ghostBody);
     return;
   }
 
@@ -480,184 +480,6 @@ canvas.addEventListener('wheel', e => {
   const mouse = getMousePos(canvas, e);
   cam.zoomAt(Math.exp(-e.deltaY * 0.007), mouse.x, mouse.y);
 }, { passive: false });
-
-// ================== PHYSICS ==================
-
-function detectEscapes() {
-  for (const b of bodies) {
-    if (b === bodies[0]) {
-      b.isEscaping = false;
-      continue;
-    }
-
-    const dx = b.x - SUN.x;
-    const dy = b.y - SUN.y;
-    const r = Math.hypot(dx, dy);
-
-    const vx = b.vx - SUN.vx;
-    const vy = b.vy - SUN.vy;
-    const v2 = vx * vx + vy * vy;
-
-    const energy = (v2 / 2) - (G * SUN.mass / r);
-
-    b.isEscaping = energy > 0;
-
-    if (energy > ESCAPE_EPS) {
-      b.isEscaping = true;
-    } else if (energy < -ESCAPE_EPS) {
-      b.isEscaping = false;
-    }
-
-  }
-}
-
-function resolveCollisions() {
-  for (let i = bodies.length - 1; i >= 0; i--) {
-    for (let j = i - 1; j >= 0; j--) {
-      const a = bodies[i];
-      const b = bodies[j];
-
-      const dx = a.x - b.x;
-      const dy = a.y - b.y;
-      const dist = Math.hypot(dx, dy);
-
-      const ra = a.size / 2;
-      const rb = b.size / 2;
-      const minDist = ra + rb;
-
-      if (dist >= minDist) continue;
-
-      const penetration = minDist - dist;
-      const penetrationRatio = penetration / minDist;
-
-      if (penetrationRatio < MERGE_PENETRATION_RATIO) {
-        continue;
-      }
-
-      const totalMass = a.mass + b.mass;
-
-      const vx =
-        (a.vx * a.mass + b.vx * b.mass) / totalMass;
-      const vy =
-        (a.vy * a.mass + b.vy * b.mass) / totalMass;
-
-      const x =
-        (a.x * a.mass + b.x * b.mass) / totalMass;
-      const y =
-        (a.y * a.mass + b.y * b.mass) / totalMass;
-
-      const size = Math.cbrt(
-        Math.pow(a.size, 3) + Math.pow(b.size, 3)
-      );
-
-      const px = b.mass * b.vx - a.mass * a.vx;
-      const py = b.mass * b.vy - a.mass * a.vy;
-
-      const orbitalL = dx * py - dy * px;
-
-      const spinL =
-        a.inertia * a.angularVelocity +
-        b.inertia * b.angularVelocity;
-
-      const totalL = orbitalL + spinL;
-    
-
-      const isASun = a.image === SUN_IMAGE;
-      const isBSun = b.image === SUN_IMAGE;
-
-    let dominant;
-    let secondary;
-
-    if (isASun) {
-    dominant = a;
-    secondary = b;
-    } else if (isBSun) {
-    dominant = b;
-    secondary = a;
-    } else {
-    dominant = (a.size >= b.size) ? a : b;
-    secondary = (dominant === a) ? b : a;
-    }
-
-      const merged = new Body({
-      x,
-      y,
-      vx,
-      vy,
-      mass: totalMass,
-      size,
-      image: dominant.image || null,
-      color: dominant.image ? null : dominant.color
-    });
-
-    merged.angularVelocity = totalL / merged.inertia;
-    merged.angle = 0;
-
-if (dominant.image === SUN_IMAGE) {
-  merged.size = dominant.size;
-  merged.image = SUN_IMAGE;
-}
-
-      merged.trail = [];
-      bodies.splice(i, 1);
-      bodies.splice(j, 1);
-      bodies.push(merged);
-
-      if (selectedBody === a || selectedBody === b) {
-        selectedBody = merged;
-      }
-
-      return;
-    }
-  }
-}
-
-
-function updatePhysics(dt) {
-  for (let i = 0; i < bodies.length; i++) {
-    let ax = 0, ay = 0;
-
-    for (let j = 0; j < bodies.length; j++) {
-      if (i === j) continue;
-
-      const dx = bodies[j].x - bodies[i].x;
-      const dy = bodies[j].y - bodies[i].y;
-      const distSq = dx * dx + dy * dy + 0.001;
-      const dist = Math.sqrt(distSq);
-
-      const accel = G * bodies[j].mass / distSq;
-      ax += accel * (dx / dist);
-      ay += accel * (dy / dist);
-    }
-
-    bodies[i].vx += ax * dt;
-    bodies[i].vy += ay * dt;
-    bodies[i].force.x = ax * bodies[i].mass;
-    bodies[i].force.y = ay * bodies[i].mass;
-  }
-
-  for (const b of bodies) {
-    b.x += b.vx * dt;
-    b.y += b.vy * dt;
-  }
-
-  for (const b of bodies) {
-    const alpha = b.torque / b.inertia;
-    b.angularVelocity += alpha * dt;
-    b.angle += b.angularVelocity * dt;
-    b.torque = 0;
-  }
-
-  detectEscapes();
-  resolveCollisions();
-
-  if (++trailCounter % TRAIL_STEP === 0) {
-    for (const b of bodies) {
-      b.trail.push({ x: b.x, y: b.y });
-      if (b.trail.length > MAX_TRAIL_LENGTH) b.trail.shift();
-    }
-  }
-}
 
 // ================== STATE ==================
 function saveState() {
@@ -819,6 +641,185 @@ function loadState() {
     console.warn('Failed to load state', e);
   }
 }
+
+// ================== PHYSICS ==================
+
+function detectEscapes() {
+  for (const b of bodies) {
+    if (b === bodies[0]) {
+      b.isEscaping = false;
+      continue;
+    }
+
+    const dx = b.x - SUN.x;
+    const dy = b.y - SUN.y;
+    const r = Math.hypot(dx, dy);
+
+    const vx = b.vx - SUN.vx;
+    const vy = b.vy - SUN.vy;
+    const v2 = vx * vx + vy * vy;
+
+    const energy = (v2 / 2) - (G * SUN.mass / r);
+
+    b.isEscaping = energy > 0;
+
+    if (energy > ESCAPE_EPS) {
+      b.isEscaping = true;
+    } else if (energy < -ESCAPE_EPS) {
+      b.isEscaping = false;
+    }
+
+  }
+}
+
+function resolveCollisions() {
+  for (let i = bodies.length - 1; i >= 0; i--) {
+    for (let j = i - 1; j >= 0; j--) {
+      const a = bodies[i];
+      const b = bodies[j];
+
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+
+      const ra = a.size / 2;
+      const rb = b.size / 2;
+      const minDist = ra + rb;
+
+      if (dist >= minDist) continue;
+
+      const penetration = minDist - dist;
+      const penetrationRatio = penetration / minDist;
+
+      if (penetrationRatio < MERGE_PENETRATION_RATIO) {
+        continue;
+      }
+
+      const totalMass = a.mass + b.mass;
+
+      const vx =
+        (a.vx * a.mass + b.vx * b.mass) / totalMass;
+      const vy =
+        (a.vy * a.mass + b.vy * b.mass) / totalMass;
+
+      const x =
+        (a.x * a.mass + b.x * b.mass) / totalMass;
+      const y =
+        (a.y * a.mass + b.y * b.mass) / totalMass;
+
+      const size = Math.cbrt(
+        Math.pow(a.size, 3) + Math.pow(b.size, 3)
+      );
+
+      const px = b.mass * b.vx - a.mass * a.vx;
+      const py = b.mass * b.vy - a.mass * a.vy;
+
+      const orbitalL = dx * py - dy * px;
+
+      const spinL =
+        a.inertia * a.angularVelocity +
+        b.inertia * b.angularVelocity;
+
+      const totalL = orbitalL + spinL;
+    
+
+      const isASun = a.image === SUN_IMAGE;
+      const isBSun = b.image === SUN_IMAGE;
+
+    let dominant;
+    let secondary;
+
+    if (isASun) {
+    dominant = a;
+    secondary = b;
+    } else if (isBSun) {
+    dominant = b;
+    secondary = a;
+    } else {
+    dominant = (a.size >= b.size) ? a : b;
+    secondary = (dominant === a) ? b : a;
+    }
+
+      const merged = new Body({
+      x,
+      y,
+      vx,
+      vy,
+      mass: totalMass,
+      size,
+      image: dominant.image || null,
+      color: dominant.image ? null : dominant.color
+    });
+
+    merged.angularVelocity = totalL / merged.inertia;
+    merged.angle = 0;
+
+if (dominant.image === SUN_IMAGE) {
+  merged.size = dominant.size;
+  merged.image = SUN_IMAGE;
+}
+
+      merged.trail = [];
+      bodies.splice(i, 1);
+      bodies.splice(j, 1);
+      bodies.push(merged);
+
+      if (selectedBody === a || selectedBody === b) {
+        selectedBody = merged;
+      }
+
+      return;
+    }
+  }
+}
+
+
+function updatePhysics(dt) {
+  for (let i = 0; i < bodies.length; i++) {
+    let ax = 0, ay = 0;
+
+    for (let j = 0; j < bodies.length; j++) {
+      if (i === j) continue;
+
+      const dx = bodies[j].x - bodies[i].x;
+      const dy = bodies[j].y - bodies[i].y;
+      const distSq = dx * dx + dy * dy + 0.001;
+      const dist = Math.sqrt(distSq);
+
+      const accel = G * bodies[j].mass / distSq;
+      ax += accel * (dx / dist);
+      ay += accel * (dy / dist);
+    }
+
+    bodies[i].vx += ax * dt;
+    bodies[i].vy += ay * dt;
+    bodies[i].force.x = ax * bodies[i].mass;
+    bodies[i].force.y = ay * bodies[i].mass;
+  }
+
+  for (const b of bodies) {
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+  }
+
+  for (const b of bodies) {
+    const alpha = b.torque / b.inertia;
+    b.angularVelocity += alpha * dt;
+    b.angle += b.angularVelocity * dt;
+    b.torque = 0;
+  }
+
+  detectEscapes();
+  resolveCollisions();
+
+  if (++trailCounter % TRAIL_STEP === 0) {
+    for (const b of bodies) {
+      b.trail.push({ x: b.x, y: b.y });
+      if (b.trail.length > MAX_TRAIL_LENGTH) b.trail.shift();
+    }
+  }
+}
+
 
 // ================== LOOP ==================
 function loop(now) {

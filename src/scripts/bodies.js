@@ -1,5 +1,5 @@
 export class Body {
-  constructor({ x, y, vx, vy, mass, size, image, color = '#ffffff' }) {
+  constructor({ x, y, vx, vy, mass, size, image, color = '#ffffff', angle = 0, angularVelocity = 0}) {
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -13,16 +13,12 @@ export class Body {
     this.trail = [];
     this.selected = false;
 
-    this.angle = 0; 
-    this.angularVelocity = 0; 
+    this.angle = angle;
+    this.angularVelocity = angularVelocity;
     this.torque = 0;
+    this.inertia = 0.5 * this.mass * (this.size / 2) ** 2;
 
     this.isEscaping = false;
-  }
-
-  get inertia() {
-  const r = this.size / 2;
-  return 0.5 * this.mass * r * r;
   }
 
   containsPoint(px, py) {
