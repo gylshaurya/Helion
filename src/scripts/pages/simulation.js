@@ -21,6 +21,7 @@ import { drawScene } from '../utils/render.js';
 
 import { PRESETS } from '../utils/presetsData.js';
 import { createSolarSystem } from '../utils/presetFactories.js';
+import { PRESET_FACTORIES } from '../utils/presets.js';
 
 // ================== UI STATE ==================
 let SHOW_TRAILS = true;
@@ -66,17 +67,20 @@ let SUN = null;
 // ================== INIT ==================
 
 function initSimulation() {
-  const presetId = localStorage.getItem('selectedPreset');
+  const presetId = getPresetFromURL();
+  const factory = PRESET_FACTORIES[presetId];
 
-  if (presetId === 'solar') {
-    bodies = createSolarSystem();
+  if (factory) {
+    bodies = factory();
   } else {
     bodies = [];
   }
 
   SUN = bodies.find(b => b.image === SUN_IMAGE) || null;
 }
+
 initSimulation();
+
 
 // ================== SETUP ==================
 
@@ -94,9 +98,17 @@ cam.y = canvas.height / 2;
 
 // ================== UI FUNCTIONS ==================
 
+if (bodies.length > 0) {
+  recenterAndFit();
+}
 
 loadState();
 window.addEventListener('beforeunload', saveState);
+
+function getPresetFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('preset');
+}
 
 function showInfoPanel() {
   infoPanel.classList.remove('hidden');

@@ -27,9 +27,8 @@
       if (!btn) return;
 
       const preset = btn.dataset.preset;
-      localStorage.setItem('selectedPreset', preset);
+      window.location.href = `/src/pages/simulation.html?preset=${preset}`;
 
-      window.location.href = '/src/pages/simulation.html';
     });
   </script>
 </body>
