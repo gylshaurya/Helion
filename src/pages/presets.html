@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Presets </title>
+  <link rel="stylesheet" href="/css/presets.css" />
+</head>
+<body>
+
+  <button data-nav="/" class="back-btn">← Back</button>
+
+  <h1>Presets</h1>
+
+  <div class="preset-grid">
+    <button data-preset="solar">Solar System (Stable)</button>
+    <button data-preset="binary">Binary Star System</button>
+    <button data-preset="triplet">Triplet Planet Dance</button>
+    <button data-preset="rings">Ring System</button>
+    <button data-preset="nested">Planet Orbiting Planet</button>
+    <button data-preset="chaos">Drifting Chaos</button>
+  </div>
+
+  <script src="../scripts/pages/presets.js"></script>
+  <script>
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('[data-preset]');
+      if (!btn) return;
+
+      const preset = btn.dataset.preset;
+      localStorage.setItem('selectedPreset', preset);
+
+      window.location.href = '/src/pages/simulation.html';
+    });
+  </script>
+</body>
+</html>

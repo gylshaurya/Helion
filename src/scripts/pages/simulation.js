@@ -9,16 +9,18 @@ import {
   SATURN_IMAGE, URANUS_IMAGE, NEPTUNE_IMAGE, ESCAPE_EPS,
   MAX_SYSTEM_RADIUS,
 
-  pauseBtn, pauseIcon, addBodyBtn, resetBtn, recenterBtn, 
+  backBtn,pauseBtn, pauseIcon, addBodyBtn, resetBtn, recenterBtn, 
   toggleTrails, toggleVelocity, toggleForce, massSlider,
   massLabel, sizeSlider, sizeLabel, colorPicker,
   infoPanel, bodyControlsPanel, timeSlider, timeLabel,
-} from './constants.js';
+} from '../utils/constants.js';
+import { Camera } from '../utils/camera.js';
+import { Body } from '../utils/bodies.js';
+import { getMousePos} from '../utils/utils.js';
+import { drawScene } from '../utils/render.js';
 
-import { Camera } from './camera.js';
-import { Body } from './bodies.js';
-import { getMousePos} from './utils.js';
-import { drawScene } from './render.js';
+import { PRESETS } from '../utils/presetsData.js';
+import { createSolarSystem } from '../utils/presetFactories.js';
 
 // ================== UI STATE ==================
 let SHOW_TRAILS = true;
@@ -58,6 +60,26 @@ let newBodyConfig = {
   color: '#ffffff',
 };
 
+let bodies=[];
+let SUN = null;
+
+// ================== INIT ==================
+
+function initSimulation() {
+  const presetId = localStorage.getItem('selectedPreset');
+
+  if (presetId === 'solar') {
+    bodies = createSolarSystem();
+  } else {
+    bodies = [];
+  }
+
+  SUN = bodies.find(b => b.image === SUN_IMAGE) || null;
+}
+initSimulation();
+
+// ================== SETUP ==================
+
 // ================== CANVAS ==================
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -69,31 +91,10 @@ const cam = new Camera();
 cam.x = canvas.width / 2;
 cam.y = canvas.height / 2;
 
-// ================== BODIES ==================
-const bodies = [
-  new Body({
-    x: 0,
-    y: 0,
-    vx: 0,
-    vy: 0,
-    mass: SUN_MASS,
-    size: 160,
-    image: SUN_IMAGE
-  }),
 
-  makePlanet(200, 0.2, 20, 25, MERCURY_IMAGE),
-  makePlanet(350, 1.1, 40, 62, VENUS_IMAGE),
-  makePlanet(500, 2.3, 50, 65, EARTH_IMAGE),
-  makePlanet(650, 3.7, 30, 35, MARS_IMAGE),
-  makePlanet(900, 0.9, 300, 120, JUPITER_IMAGE),
-  makePlanet(1500, 2.0, 250, 90, SATURN_IMAGE),
-  makePlanet(1900, 4.1, 120, 70, URANUS_IMAGE),
-  makePlanet(2200, 5.2, 120, 60, NEPTUNE_IMAGE)
-];
+// ================== UI FUNCTIONS ==================
 
-const SUN = bodies[0];
 
-// ================== SETUP ==================
 loadState();
 window.addEventListener('beforeunload', saveState);
 
@@ -136,22 +137,7 @@ function updateBodyControlsVisibility() {
   bodyControlsPanel.classList.toggle('hidden', !shouldShow);
 }
 
-function makePlanet(r, angle, mass, size, image, color) {
-  const speed = Math.sqrt(G * SUN_MASS / r);
 
-  return new Body({
-    x: Math.cos(angle) * r,
-    y: Math.sin(angle) * r,
-    vx: -Math.sin(angle) * speed,
-    vy:  Math.cos(angle) * speed,
-    mass,
-    size,
-    angularVelocity: speed*5 / r,
-    angle:0,
-    image,
-    color
-  });
-}
 
 // ================== UI EVENTS ==================
 toggleTrails.onchange = e => SHOW_TRAILS = e.target.checked;
@@ -232,7 +218,6 @@ function sliderToTime(v) {
   const t = v / 100;
   return MIN_TIME * Math.pow(MAX_TIME / MIN_TIME, t);
 }
-
 
 timeSlider.addEventListener('input', e => {
   TIME_SCALE = sliderToTime(+e.target.value);

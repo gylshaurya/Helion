@@ -53,6 +53,7 @@ URANUS_IMAGE.src = '../assets/uranus.svg';
 export const NEPTUNE_IMAGE = new Image();
 NEPTUNE_IMAGE.src = '../assets/neptune.png';
 
+export const backBtn = document.getElementById('backBtn');
 export const pauseBtn = document.getElementById('pauseBtn');
 export const pauseIcon = document.getElementById('pauseIcon');
 export const addBodyBtn = document.getElementById('addBodyBtn');

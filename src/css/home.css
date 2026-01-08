@@ -29,11 +29,6 @@ html, body {
     gap: 10px;
 }
 
-.auth-btns:hover{
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-4px);
-}
-
 #login-btn, #signup-btn{
     width: 100px;
     border-radius: 50px;
@@ -76,17 +71,12 @@ html, body {
   width: 260px;
   padding: 14px 0;
   margin: 10px 0;
-
   font-size: 16px;
   font-weight: 500;
-
   color: white;
   background: rgba(255, 255, 255, 0.06);
-
   border: 1px solid rgba(255, 255, 255, 0.18);
-  
   border-radius: 14px;
-
   backdrop-filter: blur(12px);
   transition: all 0.25s ease;
 }
@@ -157,13 +147,10 @@ html, body {
 .preset-card {
   padding: 24px;
   border-radius: 18px;
-
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
-
   backdrop-filter: blur(10px);
   cursor: pointer;
-
   transition: transform 0.2s ease, background 0.2s ease;
 }
 

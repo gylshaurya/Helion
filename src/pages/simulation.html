@@ -2,47 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Helion</title>
-  <link rel="stylesheet" href="main.css" />
+  <title>Simulation</title>
+  <link rel="stylesheet" href="../css/simulation.css" />
 </head>
 <body>
-
+  
   <canvas id="canvas"></canvas>
 
+  <button id="backBtn">Back</button>
+  
   <div id="app-title">Helion 1.0</div>
 
+  
   <aside id="left-toolbar" class="panel">
-
+    
     <button id="pauseBtn" class="icon-btn"><img id="pauseIcon" src="../assets/pause.png" alt="pause"/></button>
-
+    
     <div class="divider"></div>
     
     <div class="slider-group">
       <div class="slider-header"><span>Time</span><span id="timeScaleValue">1.0x</span></div>
-    <input type="range" id="timeScaleSlider" min="0" max="100" value="50"/>
+      <input type="range" id="timeScaleSlider" min="0" max="100" value="50"/>
     </div>
-
+    
     <div class="divider"></div>
-
+    
     <label class="toggle"><span>Trails</span><input type="checkbox" id="toggleTrails" checked /></label>
     <label class="toggle"><span>Velocity</span><input type="checkbox" id="toggleVelocity" checked /></label>
     <label class="toggle"><span>Force</span><input type="checkbox" id="toggleForce" checked /></label>
-
+    
     <div class="divider"></div>
-
+    
     <button id="recenterBtn" class="text-btn">Re-center</button>
     
     <div class="divider"></div>
     
     <button id="resetBtn" class="text-btn">Reset</button>
-
+    
   </aside>
-
+  
   <aside id="right-toolbar">
-
+    
     <div id="body-controls" class="panel hidden">
       <h3>Body Controls</h3>
-
+      
       <div class="divider"></div>
       
       <div class="slider-group">
@@ -52,30 +55,30 @@
         </div>
         <input type="range" id="massSlider" min="1" max="10000" />
       </div>
-
-
+      
+      
       <div class="slider-group">
-      <div class="slider-header">
-        <span>Radius</span>
-        <span class="slider-value" id="sizeValue">20</span>
+        <div class="slider-header">
+          <span>Radius</span>
+          <span class="slider-value" id="sizeValue">20</span>
+        </div>
+        <input type="range" id="sizeSlider" min="10" max="200" />
       </div>
-      <input type="range" id="sizeSlider" min="10" max="200" />
-      </div>
-
-
+      
+      
       <div class="divider"></div>
       
       <label>Color<input type="color" id="colorPicker" /></label>
       
-    
+      
     </div>
-
+    
     <div id="body-info" class="panel hidden"></div>
-
+    
   </aside>
-
+  
   <button id="addBodyBtn" class="fab">+</button>
-
-  <script type="module" src="../scripts/main.js"></script>
+  
+  <script type="module" src="../scripts/pages/simulation.js"></script>
 </body>
 </html>

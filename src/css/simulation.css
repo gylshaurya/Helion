@@ -16,9 +16,22 @@ canvas {
   background-repeat: no-repeat;
 }
 
+#backBtn{
+  width: 100px;
+  margin-top: 56px;
+  margin-left: 20px;
+  background: rgb(31, 31, 31);
+  border: none;
+  color: #f9fafb;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 #app-title {
   position: fixed;
-  top: 16px;
+  top: 20px;
   left: 20px;
 
   font-size: 20px;
@@ -49,7 +62,7 @@ canvas {
 
 #left-toolbar {
   position: fixed;
-  top: 50px;
+  top: 90px;
   left: 15px;
 
   width: 180px;
