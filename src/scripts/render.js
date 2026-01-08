@@ -1,5 +1,5 @@
-const FORCE_SCALE = 600;
-const VELOCITY_SCALE = 20;
+const FORCE_SCALE = 500;
+const VELOCITY_SCALE = 10;
 
 const WARNING_IMG = new Image();
 WARNING_IMG.src = '../assets/warning-icon.png';
@@ -70,7 +70,8 @@ export function drawScene(ctx, cam, bodies, options) {
         options.selectedBody.y,
         options.selectedBody.vx * 20,
         options.selectedBody.vy * 20,
-        'white'
+        'white',
+        b.size / 2
       );
     }
 
@@ -80,7 +81,8 @@ export function drawScene(ctx, cam, bodies, options) {
       ghostBody.y,
       ghostBody.vx * 20,
       ghostBody.vy * 20,
-      'white'
+      'white',
+      b.size / 2
     );
   }
 
@@ -93,7 +95,8 @@ export function drawScene(ctx, cam, bodies, options) {
         b.y,
         (b.force.x / b.mass) * FORCE_SCALE,
         (b.force.y / b.mass) * FORCE_SCALE,
-        'red'
+        'red',
+        b.size / 2
       );
     }
 
@@ -104,7 +107,8 @@ export function drawScene(ctx, cam, bodies, options) {
         b.y,
         b.vx * VELOCITY_SCALE,
         b.vy * VELOCITY_SCALE,
-        'cyan'
+        'cyan',
+        b.size / 2
       );
     }
   }
@@ -163,37 +167,46 @@ export function drawScene(ctx, cam, bodies, options) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-function drawArrow(ctx, x, y, vx, vy, color) {
+function drawArrow(ctx, x, y, vx, vy, color, radius = 0) {
   const len = Math.hypot(vx, vy);
   if (len < 0.001) return;
 
   const nx = vx / len;
   const ny = vy / len;
+
+  // 🔑 extend vector by radius
+  const ex = vx + nx * radius;
+  const ey = vy + ny * radius;
+
   const head = 6;
 
-  const lineEndX = x + vx - nx * head;
-  const lineEndY = y + vy - ny * head;
+  const lineEndX = x + ex - nx * head;
+  const lineEndY = y + ey - ny * head;
 
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
   ctx.lineWidth = 3;
 
+  // shaft
   ctx.beginPath();
   ctx.moveTo(x, y);
   ctx.lineTo(lineEndX, lineEndY);
   ctx.stroke();
 
+  // arrow head
   ctx.beginPath();
-  ctx.moveTo(x + vx, y + vy);
+  ctx.moveTo(x + ex, y + ey);
   ctx.lineTo(
-    x + vx - nx * head - ny * head,
-    y + vy - ny * head + nx * head
+    x + ex - nx * head - ny * head,
+    y + ey - ny * head + nx * head
   );
   ctx.lineTo(
-    x + vx - nx * head + ny * head,
-    y + vy - ny * head - nx * head
+    x + ex - nx * head + ny * head,
+    y + ey - ny * head - nx * head
   );
   ctx.closePath();
   ctx.fill();
 }
+
+
 

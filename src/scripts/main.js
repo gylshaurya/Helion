@@ -77,7 +77,7 @@ const bodies = [
     vx: 0,
     vy: 0,
     mass: SUN_MASS,
-    size: 250,
+    size: 160,
     image: SUN_IMAGE
   }),
 

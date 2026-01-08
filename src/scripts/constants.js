@@ -27,7 +27,7 @@ export const ESCAPE_EPS = 0.02;
 export const STORAGE_KEY = 'animation_state';
 
 export const SUN_IMAGE = new Image();
-SUN_IMAGE.src = '../assets/sun.svg';
+SUN_IMAGE.src = '../assets/sun.png';
 
 export const MERCURY_IMAGE = new Image();
 MERCURY_IMAGE.src = '../assets/mercury.svg';

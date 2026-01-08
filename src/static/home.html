@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Helion</title>
+  <link rel="stylesheet" href="home.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- AUTH BUTTONS -->
+  <div class="auth-btns">
+    <button id="login-btn" class="primary-btn">Login</button>
+    <button id="signup-btn" class="primary-btn">Signup</button>
+  </div>
+
+  <!-- MAIN MENU SCREEN -->
+  <section id="screen-menu" class="screen active">
+
+    <div class="menu-container">
+      <h1 class="app-title">Helion</h1>
+      <p class="app-subtitle">A Solar System Simulator</p>
+
+      <div class="menu-actions">
+        <button id="new-sim-btn" class="primary-btn">New Simulation</button>
+        <button id="load-sim-btn" class="primary-btn">Load Simulation</button>
+        <button id="preset-btn" class="primary-btn">Presets</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- NEW SIM SCREEN -->
+  <section id="screen-new" class="screen">
+    <div class="simple-screen">
+      <h2>New Simulation</h2>
+      <button class="primary-btn back-btn">Back</button>
+    </div>
+  </section>
+
+  <!-- LOAD SIM SCREEN -->
+  <section id="screen-load" class="screen">
+    <div class="simple-screen">
+      <h2>Load Simulation</h2>
+      <button class="primary-btn back-btn">Back</button>
+    </div>
+  </section>
+
+  <!-- PRESETS SCREEN -->
+  <section id="screen-presets" class="screen">
+    <div class="presets-container">
+
+      <div class="presets-header">
+        <h2>Presets</h2>
+        <p>Choose a predefined system to explore</p>
+      </div>
+
+      <div class="preset-grid" id="preset-grid">
+        <!-- Cards injected by JS -->
+      </div>
+
+      <button class="primary-btn back-btn">Back</button>
+
+    </div>
+  </section>
+
+
+  <script src="../scripts/home.js"></script>
+</body>
+
+</html>
