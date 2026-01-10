@@ -1,0 +1,72 @@
+@import url('./home.css');
+
+.presets-container {
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.presets-header h1 {
+  font-size: 42px;
+  font-weight: 600;
+}
+
+.presets-header p {
+  color: #b5b6bd;
+  margin-top: 6px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.preset-card {
+  padding: 24px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.preset-card:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-4px);
+}
+
+.preset-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.preset-desc {
+  font-size: 14px;
+  color: #c6c7cd;
+  line-height: 1.4;
+}
+
+
+.back-btn {
+  align-self: flex-start;
+  margin-bottom: 30px;
+
+  padding: 10px 18px;
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: white;
+
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: rgba(255,255,255,0.2);
+}

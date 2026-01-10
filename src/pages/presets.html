@@ -2,34 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Presets </title>
-  <link rel="stylesheet" href="/css/presets.css" />
+  <title>Presets | Helion</title>
+  <link rel="stylesheet" href="/src/css/presets.css" />
 </head>
 <body>
 
   <button data-nav="/" class="back-btn">← Back</button>
 
-  <h1>Presets</h1>
+  <div class="presets-container">
 
-  <div class="preset-grid">
-    <button data-preset="solar">Solar System (Stable)</button>
-    <button data-preset="binary">Binary Star System</button>
-    <button data-preset="triplet">Triplet Planet Dance</button>
-    <button data-preset="rings">Ring System</button>
-    <button data-preset="nested">Planet Orbiting Planet</button>
-    <button data-preset="chaos">Drifting Chaos</button>
+    <div class="presets-header">
+      <h1>Presets</h1>
+      <p>Choose a starting system</p>
+    </div>
+
+    <div class="preset-grid">
+
+      <div class="preset-card" data-preset="solar">
+        <div class="preset-title">Solar System</div>
+        <div class="preset-desc">Stable Sun-planet system</div>
+      </div>
+
+      <div class="preset-card" data-preset="binary">
+        <div class="preset-title">Binary Stars</div>
+        <div class="preset-desc">Two stars orbiting each other</div>
+      </div>
+
+      <div class="preset-card" data-preset="triplet">
+        <div class="preset-title">Triplet Dance</div>
+        <div class="preset-desc">Chaotic three-body interaction</div>
+      </div>
+
+      <div class="preset-card" data-preset="rings">
+        <div class="preset-title">Ring System</div>
+        <div class="preset-desc">Dense orbital rings</div>
+      </div>
+
+      <div class="preset-card" data-preset="nested">
+        <div class="preset-title">Nested Orbits</div>
+        <div class="preset-desc">Planet orbiting a planet</div>
+      </div>
+
+      <div class="preset-card" data-preset="chaos">
+        <div class="preset-title">Drifting Chaos</div>
+        <div class="preset-desc">Unbound bodies, temporary systems</div>
+      </div>
+
+    </div>
   </div>
 
-  <script src="../scripts/pages/presets.js"></script>
+  <script src="/src/scripts/navigation.js"></script>
   <script>
     document.addEventListener('click', e => {
-      const btn = e.target.closest('[data-preset]');
-      if (!btn) return;
+      const card = e.target.closest('.preset-card');
+      if (!card) return;
 
-      const preset = btn.dataset.preset;
+      const preset = card.dataset.preset;
       window.location.href = `/src/pages/simulation.html?preset=${preset}`;
-
     });
   </script>
+
 </body>
 </html>

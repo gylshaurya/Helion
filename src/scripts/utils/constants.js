@@ -9,7 +9,7 @@ export const TRAIL_DT = 1 / 30;
 export const TRAIL_STEP = 1;
 export const MAX_TRAIL_LENGTH = 150000;
 
-export const MERGE_PENETRATION_RATIO = 0.35;
+export const MERGE_PENETRATION_RATIO = 0.25;
 export const MAX_SYSTEM_RADIUS = 8000;
 
 export const keys = new Set();
@@ -19,12 +19,17 @@ export const EDIT_MOVE_SPEED = 100;
 
 // time
 export const MIN_TIME = 0.1;
-export const MAX_TIME = 200;
+export const MAX_TIME = 500;
 
 export const ESCAPE_EPS = 0.02;
 
+export const MAX_SPIN = 4;
+export const MAX_SPIN_SUN = 1;
+
 // storage
-export const STORAGE_KEY = 'animation_state';
+export const ANIM_STORAGE_KEY = 'animation_state';
+export const SIM_STORAGE_KEY = 'helion_simulations';
+
 
 export const SUN_IMAGE = new Image();
 SUN_IMAGE.src = '../assets/sun.png';
@@ -53,7 +58,7 @@ URANUS_IMAGE.src = '../assets/uranus.svg';
 export const NEPTUNE_IMAGE = new Image();
 NEPTUNE_IMAGE.src = '../assets/neptune.png';
 
-export const backBtn = document.getElementById('backBtn');
+export const saveBtn = document.getElementById('saveBtn');
 export const pauseBtn = document.getElementById('pauseBtn');
 export const pauseIcon = document.getElementById('pauseIcon');
 export const addBodyBtn = document.getElementById('addBodyBtn');
