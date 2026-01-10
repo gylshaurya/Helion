@@ -30,6 +30,8 @@ let SHOW_ORBITS = true;
 let IS_PAUSED = false;
 let IS_RESETTING = false;
 
+let LAST_SAVED_SNAPSHOT = null;
+
 let MODE = 'VIEW';
 
 let lastTime = performance.now();
@@ -91,8 +93,16 @@ function startSim() {
   const presetId = getPresetFromURL();
   const factory = PRESET_FACTORIES[presetId];
   
-  bodies = factory ? factory() : PRESET_FACTORIES.solar();
+  if (factory) {
+    bodies = factory();
+    SUN = bodies.find(b => b.image === SUN_IMAGE) || null;
+    LAST_SAVED_SNAPSHOT = saveSnap();
+    return;
+  }
+
+  bodies = PRESET_FACTORIES.solar();
   SUN = bodies.find(b => b.image === SUN_IMAGE) || null;
+  LAST_SAVED_SNAPSHOT = saveSnap();
 }
 
 startSim();
@@ -103,16 +113,26 @@ startSim();
 //   recenterAndFit();
 // }
 
-const isLoadingSimulation = localStorage.getItem('LOAD_SIMULATION_ID') !== null;
-if (!isLoadingSimulation) {
-  loadState();
-}
-
 window.addEventListener('beforeunload', saveState);
 
 function getPresetFromURL() {
   const params = new URLSearchParams(window.location.search);
   return params.get('preset');
+}
+
+function showToast(text) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+
+  document.body.appendChild(el);
+
+  requestAnimationFrame(() => el.classList.add('show'));
+
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2000);
 }
 
 function updateInfoPanel(body) {
@@ -225,16 +245,6 @@ function updateEditorMovement(dt) {
   selectedBody.trail.length = 0;
 }
 
-function sliderToTime(v) {
-  const t = v / 100;
-  return MIN_TIME * Math.pow(MAX_TIME / MIN_TIME, t);
-}
-
-timeSlider.addEventListener('input', e => {
-  TIME_SCALE = sliderToTime(+e.target.value);
-  timeLabel.textContent = TIME_SCALE.toFixed(2) + '×';
-});
-
 function pickBodyAt(x, y) {
   for (let i = bodies.length - 1; i >= 0; i--) {
     const b = bodies[i];
@@ -247,6 +257,16 @@ function pickBodyAt(x, y) {
   }
   return null;
 }
+
+function sliderToTime(v) {
+  const t = v / 100;
+  return MIN_TIME * Math.pow(MAX_TIME / MIN_TIME, t);
+}
+
+timeSlider.addEventListener('input', e => {
+  TIME_SCALE = sliderToTime(+e.target.value);
+  timeLabel.textContent = TIME_SCALE.toFixed(2) + '×';
+});
 
 saveBtn.onclick = saveSimulationAs;
 
@@ -281,9 +301,9 @@ recenterBtn.onclick = () => {
 
 resetBtn.onclick = () => {
   IS_RESETTING = true;
-  localStorage.removeItem(ANIM_STORAGE_KEY);
-  localStorage.removeItem('LOAD_SIMULATION_ID');
-  location.reload();
+  if (!LAST_SAVED_SNAPSHOT) return;
+  IS_PAUSED = true;
+  applySnap(structuredClone(LAST_SAVED_SNAPSHOT));
 };
 
 // ================== ADD BODY CONTROLS ==================
@@ -341,6 +361,7 @@ window.addEventListener('keydown', e => {
       if (index !== -1) {
         bodies.splice(index, 1);
         selectedBody = null;
+        showToast("Body deleted");
       }
     }
   }
@@ -617,25 +638,25 @@ function loadState() {
 function saveSimulationAs() {
   const name = prompt('Enter simulation name');
   if (!name || !name.trim()) return;
-  
-  const all = JSON.parse(
-    localStorage.getItem(SIM_STORAGE_KEY)
-  ) || {};
-  
+
+  const all = JSON.parse(localStorage.getItem(SIM_STORAGE_KEY)) || {};
   const id = crypto.randomUUID();
-  
+  const snapshot = saveSnap();
+
   all[id] = {
     id,
     name: name.trim(),
     createdAt: Date.now(),
-    snapshot: saveSnap()
+    snapshot
   };
-  
-  localStorage.setItem(
-    SIM_STORAGE_KEY,
-    JSON.stringify(all)
-  );
+
+  localStorage.setItem(SIM_STORAGE_KEY, JSON.stringify(all));
+
+  LAST_SAVED_SNAPSHOT = snapshot;
+
+  showToast('Simulation saved');
 }
+
 
 
 // ================== PHYSICS ==================
@@ -771,7 +792,6 @@ function resolveCollisions() {
   }
 }
 
-
 function updatePhysics(dt) {
   for (let i = 0; i < bodies.length; i++) {
     let ax = 0, ay = 0;
@@ -800,8 +820,6 @@ function updatePhysics(dt) {
     b.y += b.vy * dt;
   }
   
-  
-  
   for (const b of bodies) {
     
     //Sun should spin slowly
@@ -821,7 +839,6 @@ function updatePhysics(dt) {
     b.torque = 0;
   }
   
-  
   detectEscapes();
   resolveCollisions();
   
@@ -832,7 +849,6 @@ function updatePhysics(dt) {
     }
   }
 }
-
 
 // ================== LOOP ==================
 function loop(now) {
@@ -871,7 +887,6 @@ function loop(now) {
   
   despawanDistantBodies();
   
-  
   drawScene(ctx, cam, bodies, {
     showTrails: SHOW_TRAILS,
     showVelocity: SHOW_VELOCITY,
@@ -888,7 +903,5 @@ function loop(now) {
   
   requestAnimationFrame(loop);
 }
-
-
 
 requestAnimationFrame(loop);
