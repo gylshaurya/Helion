@@ -52,15 +52,7 @@
   </div>
 
   <script src="/src/scripts/navigation.js"></script>
-  <script>
-    document.addEventListener('click', e => {
-      const card = e.target.closest('.preset-card');
-      if (!card) return;
-
-      const preset = card.dataset.preset;
-      window.location.href = `/src/pages/simulation.html?preset=${preset}`;
-    });
-  </script>
+  <script src="/src/scripts/utils/presets.js"></script>
 
 </body>
 </html>

@@ -11,3 +11,10 @@ export const PRESET_FACTORIES = {
     chaos: createChaosSystem
 };
 
+document.addEventListener('click', e => {
+      const card = e.target.closest('.preset-card');
+      if (!card) return;
+
+      const preset = card.dataset.preset;
+      window.location.href = `/src/pages/simulation.html?preset=${preset}`;
+    });
