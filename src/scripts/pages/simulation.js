@@ -21,6 +21,8 @@ import { drawScene } from '../utils/render.js';
 
 import { PRESET_FACTORIES } from '../utils/presets.js';
 
+import { saveSimulationToDB, fetchSimulationById } from '../utils/simulationApi.js';
+
 // ================== UI STATE ==================
 let SHOW_TRAILS = true;
 let SHOW_VELOCITY = true;
@@ -76,23 +78,25 @@ cam.x = canvas.width / 2;
 cam.y = canvas.height / 2;
 
 // ================== START ==================
-function startSim() {
-  
-  const loadId = localStorage.getItem('LOAD_SIMULATION_ID');
-  
-  if (loadId) {
-    const all = JSON.parse(localStorage.getItem(SIM_STORAGE_KEY)) || {};
-    
-    if (all[loadId]) {
-      applySnap(all[loadId].snapshot);
-      localStorage.removeItem('LOAD_SIMULATION_ID');
+async function startSim() {
+  const params = new URLSearchParams(window.location.search);
+  const simId = params.get('sim');
+
+  if (simId) {
+    try {
+      const snapshot = await fetchSimulationById(simId);
+      applySnap(snapshot);
+      LAST_SAVED_SNAPSHOT = structuredClone(snapshot);
+      IS_PAUSED = true;
       return;
+    } catch (e) {
+      alert('Failed to load simulation');
     }
   }
-  
+
   const presetId = getPresetFromURL();
   const factory = PRESET_FACTORIES[presetId];
-  
+
   if (factory) {
     bodies = factory();
     SUN = bodies.find(b => b.image === SUN_IMAGE) || null;
@@ -104,6 +108,7 @@ function startSim() {
   SUN = bodies.find(b => b.image === SUN_IMAGE) || null;
   LAST_SAVED_SNAPSHOT = saveSnap();
 }
+
 
 startSim();
 
@@ -121,19 +126,24 @@ function getPresetFromURL() {
 }
 
 function showToast(text) {
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = text;
+  const div = document.createElement('div');
+  div.textContent = text;
+  div.style.position = 'fixed';
+  div.style.bottom = '20px';
+  div.style.left = '50%';
+  div.style.transform = 'translateX(-50%)';
+  div.style.padding = '12px 20px';
+  div.style.background = 'rgba(0,0,0,0.7)';
+  div.style.color = 'white';
+  div.style.borderRadius = '10px';
+  div.style.zIndex = 9999;
+  div.style.fontSize = '14px';
 
-  document.body.appendChild(el);
+  document.body.appendChild(div);
 
-  requestAnimationFrame(() => el.classList.add('show'));
-
-  setTimeout(() => {
-    el.classList.remove('show');
-    setTimeout(() => el.remove(), 300);
-  }, 2000);
+  setTimeout(() => div.remove(), 2000);
 }
+
 
 function updateInfoPanel(body) {
   
@@ -635,26 +645,20 @@ function loadState() {
   }
 }
 
-function saveSimulationAs() {
+async function saveSimulationAs() {
   const name = prompt('Enter simulation name');
   if (!name || !name.trim()) return;
 
-  const all = JSON.parse(localStorage.getItem(SIM_STORAGE_KEY)) || {};
-  const id = crypto.randomUUID();
-  const snapshot = saveSnap();
+  try {
+    await saveSimulationToDB({
+      name: name.trim(),
+      snapshot: saveSnap()
+    });
 
-  all[id] = {
-    id,
-    name: name.trim(),
-    createdAt: Date.now(),
-    snapshot
-  };
-
-  localStorage.setItem(SIM_STORAGE_KEY, JSON.stringify(all));
-
-  LAST_SAVED_SNAPSHOT = snapshot;
-
-  showToast('Simulation saved');
+    showToast('Simulation saved successfully');
+  } catch (err) {
+    alert(err.message || 'Failed to save simulation');
+  }
 }
 
 
