@@ -174,7 +174,6 @@ function drawArrow(ctx, x, y, vx, vy, color, radius = 0) {
   const nx = vx / len;
   const ny = vy / len;
   
-  // 🔑 extend vector by radius
   const ex = vx + nx * radius;
   const ey = vy + ny * radius;
   
@@ -187,7 +186,6 @@ function drawArrow(ctx, x, y, vx, vy, color, radius = 0) {
   ctx.fillStyle = color;
   ctx.lineWidth = 3;
   
-  // shaft
   ctx.beginPath();
   ctx.moveTo(x, y);
   ctx.lineTo(lineEndX, lineEndY);

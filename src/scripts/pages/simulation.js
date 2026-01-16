@@ -1,10 +1,10 @@
 import {
-  G, SUN_MASS, FIXED_DT, MAX_STEPS_PER_FRAME,
+  G, FIXED_DT, MAX_STEPS_PER_FRAME,
   TRAIL_STEP,TRAIL_DT, keys, MAX_TRAIL_LENGTH,
   MERGE_PENETRATION_RATIO,
   EDIT_MOVE_SPEED,
   MIN_TIME, MAX_TIME, MAX_SPIN, MAX_SPIN_SUN,
-  SIM_STORAGE_KEY, ANIM_STORAGE_KEY, SUN_IMAGE, MERCURY_IMAGE,
+  ANIM_STORAGE_KEY, SUN_IMAGE, MERCURY_IMAGE,
   VENUS_IMAGE, EARTH_IMAGE, MARS_IMAGE, JUPITER_IMAGE,
   SATURN_IMAGE, URANUS_IMAGE, NEPTUNE_IMAGE, ESCAPE_EPS,
   MAX_SYSTEM_RADIUS,
@@ -14,13 +14,12 @@ import {
   massLabel, sizeSlider, sizeLabel, colorPicker,
   infoPanel, bodyControlsPanel, timeSlider, timeLabel,
 } from '../utils/constants.js';
+
 import { Camera } from '../utils/camera.js';
 import { Body } from '../utils/bodies.js';
 import { getMousePos} from '../utils/utils.js';
 import { drawScene } from '../utils/render.js';
-
 import { PRESET_FACTORIES } from '../utils/presets.js';
-
 import { saveSimulationToDB, fetchSimulationById } from '../utils/simulationApi.js';
 
 // ================== UI STATE ==================
@@ -109,17 +108,11 @@ async function startSim() {
   LAST_SAVED_SNAPSHOT = saveSnap();
 }
 
-
 startSim();
-
-// ================== UI FUNCTIONS ==================
-
-// if (bodies.length > 0) {
-//   recenterAndFit();
-// }
 
 window.addEventListener('beforeunload', saveState);
 
+// ================== UI FUNCTIONS ==================
 function getPresetFromURL() {
   const params = new URLSearchParams(window.location.search);
   return params.get('preset');
@@ -446,7 +439,6 @@ canvas.addEventListener('mousedown', e => {
   lastMouse = mouse;
 });
 
-
 canvas.addEventListener('mousemove', e => {
   const mouse = getMousePos(canvas, e);
   
@@ -634,17 +626,6 @@ function saveState() {
   localStorage.setItem(ANIM_STORAGE_KEY, JSON.stringify(saveSnap()));
 }
 
-function loadState() {
-  const raw = localStorage.getItem(ANIM_STORAGE_KEY);
-  if (!raw) return;
-  
-  try {
-    applySnap(JSON.parse(raw));
-  } catch (e) {
-    console.warn('Failed to load state', e);
-  }
-}
-
 async function saveSimulationAs() {
   const name = prompt('Enter simulation name');
   if (!name || !name.trim()) return;
@@ -661,10 +642,7 @@ async function saveSimulationAs() {
   }
 }
 
-
-
 // ================== PHYSICS ==================
-
 function detectEscapes() {
   if(SUN){
     for (const b of bodies) {
