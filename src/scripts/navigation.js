@@ -9,7 +9,7 @@ document.addEventListener('click', (e) => {
 function resolvePath(path) {
   switch (path) {
     case '/':
-    return '/src/pages/home.html';
+    return 'home.html';
     case '/presets':
     return '/src/pages/presets.html';
     case '/simulation':
@@ -17,6 +17,6 @@ function resolvePath(path) {
     case '/load':
     return '/src/pages/load.html';
     default:
-    return '/src/pages/home.html';
+    return 'home.html';
   }
 }
