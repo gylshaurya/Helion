@@ -22,7 +22,7 @@ loginBtn.onclick = async () => {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'http://127.0.0.1:5500/src/pages/home.html'
+      redirectTo: 'http://127.0.0.1:5500'
     }
   });
 };

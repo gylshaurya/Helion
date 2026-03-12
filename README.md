@@ -168,7 +168,7 @@ Selecting a preset starts the simulation with that configuration.
 ## Running the Project
 
 1. Open the project using a local web server (for example, VS Code Live Server)
-2. Open `home.html`
+2. Open `index.html`
 3. Log in using Google (required for saving simulations)
 4. Start a new simulation or choose a preset
 
